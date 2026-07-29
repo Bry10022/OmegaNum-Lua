@@ -2,4 +2,4 @@ Original made by FoundForces, with support for hyper() (please don't use hyperop
 
 Intended to be used with Roblox.
 
-Known issues: Wonky results with fromString() for numbers and number parts that are less than MSI ("e4.6e6")
+Known issues: Wonky results with fromString() if you have multiple e's and numbers between the e's ("e4.6e6" being treated as "1e1000000" instead of "1e4600000")
