@@ -504,51 +504,87 @@ function ree.fromString(str)
 	if str == "[0]" then
 		return ZERO
 	end
-	if (string.find(str, 'e') or string.find(str, 'E')) and not string.find(str,"%[") then
-		local subs = string.split(str, 'e')
-		-- Fix problem with tetrate
-		if subs[1] == "" then
-			table.insert(subs, 1, "1")
-			if subs[2] == "" then
-				table.remove(subs, 2)
-			end
+	if string.find(str, ',') or string.find(str, "%[") then
+		local HttpService = game:GetService("HttpService")
+		local data = HttpService:JSONDecode(str)
+		local sign = math.sign(data[1] or 1)
+		data[1] = math.abs(data[1] or 0)
+		return ree.correct({sign, data})
+	end
+	local isNegative = false
+	local signCountStart, signCountEnd = string.find(str, "^[-+]+")
+	if signCountStart then
+		local signs = string.sub(str, signCountStart, signCountEnd)
+		local _, minusCount = string.gsub(signs, "-", "")
+		if minusCount % 2 == 1 then
+			isNegative = true
 		end
-		if #subs == 2 then
-			-- its scientific yk
-			local n = false
-
-
-			if subs[1]:find("-") then
-				subs[1] = math.abs(subs[1])
-				n = true
+		str = string.sub(str, signCountEnd + 1)
+	end
+	-- Handle infinity and NaN (case-insensitive)
+	if str:lower() == "nan" then
+		return NAN
+	elseif str:lower() == "inf" or str:lower() == "infinity" then
+		local sign = isNegative and -1 or 1
+		return sign * INF
+	end
+	-- get all parts between e's
+	local parts = string.split(str:lower(), "e")
+	local b = {0, 0}
+	local indexR = #parts
+	while indexR > 1 and parts[indexR] ~= "" do
+		local nextVal = tonumber(parts[indexR]) or 0
+		if b[2] == 0 and nextVal <= 15 then
+			local combinedStr = parts[indexR-1] .. "e" .. tostring(nextVal)
+			local parsed = tonumber(combinedStr)
+			if parsed then
+				b[1] = parsed
+				indexR = indexR - 2
+			else
+				break
 			end
-			local first = subs[2]+math.log10(subs[1])
-			if n then 
-				first = -first
-			end
-			local second = 1
-			local sign = math.sign(first)
-			first = math.abs(first)
-			return ree.correct({sign, {first, second}})
 		else
-			-- its an e chain!
-			local second = #subs-1
-			local first = subs[#subs]
-			local sign = 1
-			if subs[1] == '-' then
-				sign = -1
-			end
-			return ree.correct({sign, {tonumber(first), second}})
+			break
 		end
 	end
-	if string.find(str, ',') or string.find(str,"%[") then
-		str = game.HttpService:JSONDecode(str)
-		str = {math.sign(str[1] or 1), str}
-		str[2][1] = math.abs(str[2][1] or 0)
-		return ree.correct(str)
-	else
-		return ree.fromNumber(tonumber(str))
+	-- Multiply coefficients
+	for i = indexR, 1, -1 do
+		local currentPart = parts[i]
+		if b[1] < 15 and b[2] == 0 then
+			b[1] = 10 ^ b[1]
+		else
+			b[2] = b[2] + 1
+		end
+		if currentPart ~= "" then
+			local num = tonumber(currentPart) or 1
+			if b[2] == 0 then
+				b[1] = b[1] * num
+			elseif b[2] == 1 then
+				b[1] = b[1] + math.log10(num)
+			else
+				if b[2] == 2 and b[1] < 15 + math.log10(math.log10(num)) then
+					b[1] = b[1] + math.log10(1 + 10^(math.log10(math.log10(num)) - b[1]))
+				end
+			end
+		end
 	end
+	-- Adjust for large numbers if needed
+	if b[1] < 15 and b[2] > 0 then
+		b[1] = 10 ^ b[1]
+		b[2] = b[2] - 1
+	elseif b[2] == 0 and b[1] > maxInt then
+		b[1] = math.log10(b[1])
+		b[2] = 1
+	elseif b[1] > maxInt then
+		b[1] = math.log10(b[1])
+		b[2] = b[2] + 1
+	end
+	-- Apply the sign
+	local finalSign = isNegative and -1 or 1
+	local first = b[1]
+	local second = b[2]
+
+	return ree.correct({finalSign, {first, second}})
 end
 
 function ree.toOmega(val)
