@@ -1378,7 +1378,91 @@ function ree.slog(r,base)
 end
 
 function ree.tetrate(x,y)
-	return ree.hyper(4,x,y)
+	x = ree.correct(x)
+	y = ree.correct(y)
+	if ree.le(y,-2) then
+		return NAN
+	end
+	if ree.eq(x,ZERO) then
+		if ree.eq(y,0) then
+			return NAN
+		end
+		if ree.eq(ree.mod(y,2),0) then
+			return ZERO
+		end
+		return {1,{1}}
+	end
+	if ree.eq(x,{1,{1}}) then
+		if ree.eq(y, {-1,{1}}) then
+			return NAN
+		end
+		return {1,{1}}
+	end
+	if ree.eq(y, {-1,{1}}) then
+		return ZERO
+	end
+	if ree.eq(y, 0) then
+		return {1,{1}}
+	end
+	if ree.eq(y, 1) then
+		return x
+	end
+	if ree.eq(y,2) then
+		return ree.pow(x,x)
+	end
+	if ree.eq(x,2) then
+		if ree.eq(y,3) then
+			return ree.fromNumber(16)
+		end
+		if ree.eq(y,4) then
+			return ree.fromNumber(65536)
+		end
+	end
+	local max = ree.max(x,y)
+	if ree.me(max, {1,{10000000000, 8, maxInt}}) then
+		return max
+	end
+	if ree.me(x, maxPOW) or ree.me(y, maxInt) then
+		if ree.le(x, math.exp(1/2.7182818284)) then
+			local nel = ree.neg(ree.log(x))
+			return ree.div(ree.lambertw(nel), nel)
+		end
+		local q = copytab(ree.add(ree.slog(x,10),y))
+		q[2][3] = (y[2][3] or 0)+1
+		return ree.correct(q)
+	end
+	local yo = ree.toNumber(y)
+	local fo = math.floor(yo)
+	local ro = ree.pow(x, yo-fo)
+	local mo = maxADD
+	local lo = NAN
+	local count = 0
+	for i=1,100 do
+		if not(fo~=0 and ree.le(ro,mo)) then break end
+		count +=1
+		if fo>0 then
+			ro = ree.pow(x,ro)
+			if ree.eq(lo,ro) then
+				fo=0
+				break
+			end
+			lo=ro
+			fo -= 1
+		else
+			ro = ree.log(ro,x)
+			if ree.eq(lo,ro) then
+				fo=0
+				break
+			end
+			lo=ro
+			fo += 1
+		end
+	end
+	if count == 100 or ree.le(x,math.exp(1/2.7182818284)) then
+		fo = 0
+	end
+	ro[2][2] = ro[2][2] and ro[2][2]+fo or fo
+	return ree.correct(ro)
 end
 
 ree.tetr = ree.tetrate
@@ -1409,6 +1493,7 @@ function ree.hyper(n, x, y)
 	if n == 1 then return ree.add(x, y) end 
 	if n == 2 then return ree.mul(x, y) end 
 	if n == 3 then return ree.pow(x, y) end 
+ 	if n == 4 then return ree.tetr(x, y) end 
 
 	if ree.le(y, -1) then return NAN end 
 	if ree.eq(y, ZERO) then return {1, {1}} end 
