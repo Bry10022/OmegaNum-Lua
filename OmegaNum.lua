@@ -1,7 +1,7 @@
 -- Making OmegaNum, with support for hyperoperations (Original by FoundForces)
 
 --Config--
-local NAN = 0/0 -- NAN constant.
+local NAN = math.nan -- NAN constant.
 local INF = math.huge -- INF constant.
 local paraForCorrect = 2 -- Amount of loops in errorcorrect (keep 2).
 local maxInt = 2^53-1 -- Max integer thats allowed in an array.
@@ -27,7 +27,7 @@ local pi = 3.14159265358979323846
 
 --[[
 Functions:
- 
+
 correct: corrects an omeganum
 fromNumber: converts a number to omeganum
 toNumber: converts an omeganum to number
@@ -85,7 +85,7 @@ hexate
 hyper
 lbencode
 lbdecode
- 
+
 ]]
 
 trunc = function (n) -- math function
@@ -101,7 +101,7 @@ function fgamma(n)
 	if math.floor(n) == n then
 		return fact(n-1)
 	end
-	if (n > 0.5) then 
+	if (n > 0.5) then
 		n -= 1
 		local x = C[1]
 		for i=1,7 do
@@ -144,12 +144,12 @@ end
 
 function Hlambertw(n)
 	local tol = 1e-10
-	n = ree.correct(n)
+	n = OmegaNum.correct(n)
 	local wn;
-	local w = ree.log(n)
+	local w = OmegaNum.log(n)
 	for i=1,100 do
-		wn = ree.div(ree.add(ree.mul(n,ree.exp(ree.neg(w))),ree.mul(w,w)),ree.add(w,1))
-		if ree.le(ree.abs(ree.sub(wn,w)), ree.mul(tol,ree.abs(wn))) then
+		wn = OmegaNum.div(OmegaNum.add(OmegaNum.mul(n,OmegaNum.exp(OmegaNum.neg(w))),OmegaNum.mul(w,w)),OmegaNum.add(w,1))
+		if OmegaNum.le(OmegaNum.abs(OmegaNum.sub(wn,w)), OmegaNum.mul(tol,OmegaNum.abs(wn))) then
 			return wn
 		end
 		w = wn
@@ -158,13 +158,13 @@ function Hlambertw(n)
 	return NAN
 end
 
-ree = {}
+OmegaNum = {}
 
-function ree.correct(val)
+function OmegaNum.correct(val)
 	if val == nil then return ZERO end
 	if val ~= val then return NAN end
 	if type(val) ~= 'table' then
-		return ree.toOmega(val)
+		return OmegaNum.toOmega(val)
 	end
 	if type(val[2]) ~= "table" and #val == 2 then
 		val = {math.sign(val[1]), {val[2] + math.log10(math.abs(val[1])),1}}
@@ -214,7 +214,7 @@ function ree.correct(val)
 				end
 				array[i] = 10^array[i]
 				array[2] = (array[2] or 0) - 1
-			end 
+			end
 		end
 		if array[2] == 0 then
 			if array[1] == 1 then
@@ -226,7 +226,7 @@ function ree.correct(val)
 					elseif array[i] == 1 and i == len then
 						return {sign, {10}}
 					end
-				end 
+				end
 			end
 			local LastZero = 2
 			local OneEncountered = false
@@ -279,12 +279,12 @@ function ree.correct(val)
 		if array[1] < math.log10(maxInt) and array[2] > 0  then
 			array[2] -= 1
 			array[1] = 10^array[1]
-			array[2] = (array[2] == 0) and nil or array[2] 
+			array[2] = (array[2] == 0) and nil or array[2]
 		end
 		if array[1] < math.log10(maxInt) and array[2] > 0  then
 			array[2] -= 1
 			array[1] = 10^array[1]
-			array[2] = (array[2] == 0) and nil or array[2] 
+			array[2] = (array[2] == 0) and nil or array[2]
 		end
 	end
 	for i=2,len do
@@ -324,18 +324,18 @@ function ree.correct(val)
 	return qq
 end
 
-function ree.fromNumber(val)
+function OmegaNum.fromNumber(val)
 	if type(val) ~= 'number' then
 		error('NAN input at fromNumber()')
 	end
 	if val == 0 then
 		return ZERO
 	end
-	return ree.correct({math.sign(val), {math.abs(val)}})
+	return OmegaNum.correct({math.sign(val), {math.abs(val)}})
 end
 
-function ree.toNumber(val)
-	val = ree.correct(val)
+function OmegaNum.toNumber(val)
+	val = OmegaNum.correct(val)
 	local array = val[2]
 	local sign = val[1]
 	if #array >=2 and (array[2]>=2 or (array[2] ==1 and array[1]>math.log10(maxAllowed))) then
@@ -348,7 +348,7 @@ local function formatarrow(val)
 	if type(val) == "number" then
 		local t = ''
 		if val > formatArrowLimit then
-			t = "10{"..ree.toDisplay(val).."}"
+			t = "10{"..OmegaNum.toDisplay(val).."}"
 		else
 			t = '10'
 			for i = 1,val do
@@ -359,8 +359,8 @@ local function formatarrow(val)
 	end
 end
 
-function ree.toDisplay(val,short)
-	local val1 = ree.correct(val)
+function OmegaNum.toDisplay(val,short)
+	local val1 = OmegaNum.correct(val)
 	local array = val1[2]
 	local sign = val1[1]
 	if short then
@@ -385,12 +385,12 @@ function ree.toDisplay(val,short)
 				array[1] = math.floor(array[1])
 			end
 			if array[2] > amoes then
-				return  esign .. '10^^' .. ree.short(array[2]-1) .. ' ' .. base .. 'e' .. ree.short(array[1])
+				return  esign .. '10^^' .. OmegaNum.short(array[2]-1) .. ' ' .. base .. 'e' .. OmegaNum.short(array[1])
 			end
 			for i=1,array[2]-1 do
 				es = es .. 'e'
 			end
-			return esign .. es .. ree.short(base) .. 'e' .. ree.short(array[1])
+			return esign .. es .. OmegaNum.short(base) .. 'e' .. OmegaNum.short(array[1])
 		end
 		local function Decimal(val, amo)
 			local a = math.floor(val*10^amo)
@@ -408,21 +408,21 @@ function ree.toDisplay(val,short)
 				end
 				local exponent = math.floor(math.log10(array[1]))
 				local base = array[1]/10^exponent
-				return esign .. ree.short(Decimal(base, PrecisionDisplay)) .. 'e' .. ree.short(exponent)
+				return esign .. OmegaNum.short(Decimal(base, PrecisionDisplay)) .. 'e' .. OmegaNum.short(exponent)
 			else
-				return ree.short(array[1]*sign)
+				return OmegaNum.short(array[1]*sign)
 			end
 		end
 		if #array > 2 then
 			local str = ''
 			for i=#array,1,-1 do
 				if i == 1 then
-					str = str .. 'e' ..  ree.short(array[i])
+					str = str .. 'e' ..  OmegaNum.short(array[i])
 					break
 				end
 				if array[i] ~= 0 then
 					--str = str .. '(10↑[' .. i-1 .. '])' .. array[i]
-					str = str .. formatarrow(i) .. ree.short(array[i]) .. " "
+					str = str .. formatarrow(i) .. OmegaNum.short(array[i]) .. " "
 				end
 			end
 			return str
@@ -494,13 +494,13 @@ function ree.toDisplay(val,short)
 	end
 end
 
-function ree.toString(val)
-	val = ree.correct(val)
+function OmegaNum.toString(val)
+	val = OmegaNum.correct(val)
 	val[2][1] *= val[1]
 	return game.HttpService:JSONEncode(val[2])
 end
 
-function ree.fromString(str)
+function OmegaNum.fromString(str)
 	if str == "[0]" then
 		return ZERO
 	end
@@ -509,7 +509,7 @@ function ree.fromString(str)
 		local data = HttpService:JSONDecode(str)
 		local sign = math.sign(data[1] or 1)
 		data[1] = math.abs(data[1] or 0)
-		return ree.correct({sign, data})
+		return OmegaNum.correct({sign, data})
 	end
 	local isNegative = false
 	local signCountStart, signCountEnd = string.find(str, "^[-+]+")
@@ -584,10 +584,10 @@ function ree.fromString(str)
 	local first = b[1]
 	local second = b[2]
 
-	return ree.correct({finalSign, {first, second}})
+	return OmegaNum.correct({finalSign, {first, second}})
 end
 
-function ree.toOmega(val)
+function OmegaNum.toOmega(val)
 	if type(val) == 'table' then
 		-- Assuming its Omega type.
 		-- For converting other Bnums please use assigned function.
@@ -598,52 +598,52 @@ function ree.toOmega(val)
 	end
 	if type(val) == 'number' then
 		-- convert number to omega
-		return ree.fromNumber(val)
+		return OmegaNum.fromNumber(val)
 	end
 	if type(val) == 'string' then
 		-- convert str to omega
-		return ree.fromString(val)
+		return OmegaNum.fromString(val)
 	end
 end
 
-function ree.eq(val, val2)
-	val,val2 = ree.correct(val),ree.correct(val2)
-	return ree.cmp(val, val2) == 0 
+function OmegaNum.eq(val, val2)
+	val,val2 = OmegaNum.correct(val),OmegaNum.correct(val2)
+	return OmegaNum.cmp(val, val2) == 0
 end
 
-function ree.le(val, val2)
-	val,val2 = ree.correct(val),ree.correct(val2)
-	return ree.cmp(val, val2) == -1
+function OmegaNum.le(val, val2)
+	val,val2 = OmegaNum.correct(val),OmegaNum.correct(val2)
+	return OmegaNum.cmp(val, val2) == -1
 end
 
-function ree.me(val, val2)
-	val,val2 = ree.correct(val),ree.correct(val2)
-	return ree.cmp(val, val2) == 1 
+function OmegaNum.me(val, val2)
+	val,val2 = OmegaNum.correct(val),OmegaNum.correct(val2)
+	return OmegaNum.cmp(val, val2) == 1
 end
 
-function ree.meeq(val, val2)
-	val,val2 = ree.correct(val),ree.correct(val2)
-	return ree.cmp(val, val2) >= 0 
+function OmegaNum.meeq(val, val2)
+	val,val2 = OmegaNum.correct(val),OmegaNum.correct(val2)
+	return OmegaNum.cmp(val, val2) >= 0
 end
 
-function ree.leeq(val, val2)
-	val,val2 = ree.correct(val),ree.correct(val2)
-	return ree.cmp(val, val2) <= 0 
+function OmegaNum.leeq(val, val2)
+	val,val2 = OmegaNum.correct(val),OmegaNum.correct(val2)
+	return OmegaNum.cmp(val, val2) <= 0
 end
 
-function ree.abs(val)
-	val = ree.correct(val)
+function OmegaNum.abs(val)
+	val = OmegaNum.correct(val)
 	return {1, val[2]}
 end
 
-function ree.neg(val)
-	val = ree.correct(val)
+function OmegaNum.neg(val)
+	val = OmegaNum.correct(val)
 	return {val[1]*-1, val[2]}
 end
 
-function ree.cmp(val, val2) -- 0 = eq, -1 = le, 1 = me 
-	val = ree.correct(val)
-	val2 = ree.correct(val2)
+function OmegaNum.cmp(val, val2) -- 0 = eq, -1 = le, 1 = me
+	val = OmegaNum.correct(val)
+	val2 = OmegaNum.correct(val2)
 	local V1Nan = val ~= val
 	if V1Nan and val2 ~= val2 then return 0
 	elseif V1Nan or val2 ~= val2 then return 1
@@ -662,7 +662,7 @@ function ree.cmp(val, val2) -- 0 = eq, -1 = le, 1 = me
 	end
 	local a = val[1]
 	local z
-	if #val[2] > #val2[2] then z=1 
+	if #val[2] > #val2[2] then z=1
 	elseif #val[2] < #val2[2] then z=-1
 	else
 		for i=#val[2],1,-1 do
@@ -679,22 +679,22 @@ function ree.cmp(val, val2) -- 0 = eq, -1 = le, 1 = me
 	return z*a
 end
 
---[[function ree.sub(val, val2)
-	return ree.add(val, ree.neg(val2))
+--[[function OmegaNum.sub(val, val2)
+	return OmegaNum.add(val, OmegaNum.neg(val2))
 end]]
 
-function ree.max(val, val2)
-	val,val2 = ree.correct(val),ree.correct(val2)
-	if ree.me(val, val2) then
+function OmegaNum.max(val, val2)
+	val,val2 = OmegaNum.correct(val),OmegaNum.correct(val2)
+	if OmegaNum.me(val, val2) then
 		return val
 	else
 		return val2
 	end
 end
 
-function ree.min(val, val2)
-	val,val2 = ree.correct(val),ree.correct(val2)
-	if ree.me(val, val2) then
+function OmegaNum.min(val, val2)
+	val,val2 = OmegaNum.correct(val),OmegaNum.correct(val2)
+	if OmegaNum.me(val, val2) then
 		return val2
 	else
 		return val
@@ -711,237 +711,237 @@ function copytab(v)
 	return new
 end
 
-function ree.log10(val)
-	val = ree.correct(val)
-	if ree.eq(val , ZERO) then
+function OmegaNum.log10(val)
+	val = OmegaNum.correct(val)
+	if OmegaNum.eq(val , ZERO) then
 		return ZERO
 	end
 	local val1 = copytab(val)
-	if ree.le(val1, 0) then return NAN end
-	if ree.eq(val1, 0) then return -INF end
-	if ree.leeq(val1, maxInt) then return ree.fromNumber(math.log10(ree.toNumber(val1))) end
+	if OmegaNum.le(val1, 0) then return NAN end
+	if OmegaNum.eq(val1, 0) then return -INF end
+	if OmegaNum.leeq(val1, maxInt) then return OmegaNum.fromNumber(math.log10(OmegaNum.toNumber(val1))) end
 	val1[2][2] -= 1
-	return ree.correct(val1) 
+	return OmegaNum.correct(val1)
 end
 
-function ree.isint(val)
-	val = ree.correct(val)
+function OmegaNum.isint(val)
+	val = OmegaNum.correct(val)
 	if val[1] ==-1 then
-		return ree.isint(ree.abs(val))
+		return OmegaNum.isint(OmegaNum.abs(val))
 	end
-	if ree.meeq(val, maxInt) then
+	if OmegaNum.meeq(val, maxInt) then
 		return true
 	end
-	return math.fmod(ree.toNumber(val),1) == 1
+	return math.fmod(OmegaNum.toNumber(val),1) == 1
 end
 
-function ree.recip(val)
-	val = ree.correct(val)
-	if ree.me(ree.abs(val), "2e323") then return ZERO end
-	return ree.div(1, val)
+function OmegaNum.recip(val)
+	val = OmegaNum.correct(val)
+	if OmegaNum.me(OmegaNum.abs(val), "2e323") then return ZERO end
+	return OmegaNum.div(1, val)
 end
 
-function ree.pow(val, val2)
-	val,val2 = ree.correct(val),ree.correct(val2)
+function OmegaNum.pow(val, val2)
+	val,val2 = OmegaNum.correct(val),OmegaNum.correct(val2)
 	local sign,sign2 = val[1],val2[1]
 	local array,array2 = val[2],val2[2]
-	if ree.eq(val2, 0) then
+	if OmegaNum.eq(val2, 0) then
 		return {1, {1}}
 	end
-	if ree.eq(val2, 1) then
+	if OmegaNum.eq(val2, 1) then
 		return val
 	end
-	if ree.le(val2, 0) then
-		return ree.recip(ree.pow(val, ree.neg(val2)))
+	if OmegaNum.le(val2, 0) then
+		return OmegaNum.recip(OmegaNum.pow(val, OmegaNum.neg(val2)))
 	end
-	if ree.le(val, 0) and ree.isint(val2) then
-		if ree.le(ree.mod(val2, 2), 1) then
-			return ree.pow(ree.abs(val), val2)
+	if OmegaNum.le(val, 0) and OmegaNum.isint(val2) then
+		if OmegaNum.le(OmegaNum.mod(val2, 2), 1) then
+			return OmegaNum.pow(OmegaNum.abs(val), val2)
 		end
-		return ree.neg(ree.pow(ree.abs(val), val2))
-	end 
-	if ree.le(val, ZERO) then
+		return OmegaNum.neg(OmegaNum.pow(OmegaNum.abs(val), val2))
+	end
+	if OmegaNum.le(val, ZERO) then
 		return NAN
 	end
-	if ree.eq(val, 1) then
+	if OmegaNum.eq(val, 1) then
 		return {1, {1}}
 	end
-	if ree.eq(val, ZERO) then
+	if OmegaNum.eq(val, ZERO) then
 		return ZERO
 	end
-	if ree.meeq(ree.max(val,val2), maxPOW) then
-		return ree.max(val, val2)
+	if OmegaNum.meeq(OmegaNum.max(val,val2), maxPOW) then
+		return OmegaNum.max(val, val2)
 	end
-	if ree.eq(val, 10) then
-		if ree.me(val2, 0) then
+	if OmegaNum.eq(val, 10) then
+		if OmegaNum.me(val2, 0) then
 			if array2[2] then
 				array2[2] = array2[2]+1
 			else
 				array2[2] = 1
 			end
-			return ree.correct(val2)
+			return OmegaNum.correct(val2)
 		else
-			return ree.fromNumber(10^ree.toNumber(val2))
+			return OmegaNum.fromNumber(10^OmegaNum.toNumber(val2))
 		end
 	end
-	if ree.le(val2, 1) then
-		ree.root(val,ree.recip(val2))
+	if OmegaNum.le(val2, 1) then
+		OmegaNum.root(val,OmegaNum.recip(val2))
 	end
-	local ni = ree.toNumber(val)^ree.toNumber(val2)
+	local ni = OmegaNum.toNumber(val)^OmegaNum.toNumber(val2)
 	if ni<= maxInt then
-		return ree.fromNumber(ni)
+		return OmegaNum.fromNumber(ni)
 	end
-	local f = ree.log10(val)
-	local exporrrrrrrrrr =  ree.mul(f, val2)
-	return ree.pow(10, exporrrrrrrrrr)
+	local f = OmegaNum.log10(val)
+	local exporrrrrrrrrr =  OmegaNum.mul(f, val2)
+	return OmegaNum.pow(10, exporrrrrrrrrr)
 end
 
-function ree.mod(val, val2)
-	val = ree.correct(val)
-	val2 = ree.correct(val2)
+function OmegaNum.mod(val, val2)
+	val = OmegaNum.correct(val)
+	val2 = OmegaNum.correct(val2)
 	local sign,sign2 = val[1],val2[1]
-	if ree.eq(val,ZERO) then
+	if OmegaNum.eq(val,ZERO) then
 		return ZERO
 	end
 	if sign*sign2 == -1 then
-		return ree.neg(ree.mod(ree.abs(val), ree.abs(val2)))
+		return OmegaNum.neg(OmegaNum.mod(OmegaNum.abs(val), OmegaNum.abs(val2)))
 	end
 	if sign == -1 then
-		return ree.mod(ree.abs(val), ree.abs(val2))
+		return OmegaNum.mod(OmegaNum.abs(val), OmegaNum.abs(val2))
 	end
-	return ree.sub(val, ree.mul(ree.floor(ree.div(val, val2)), val2))
+	return OmegaNum.sub(val, OmegaNum.mul(OmegaNum.floor(OmegaNum.div(val, val2)), val2))
 end
 
-function ree.root(val, val2)
-	val,val2 = ree.correct(val),ree.correct(val2)
-	if ree.eq(val2, 1) then
+function OmegaNum.root(val, val2)
+	val,val2 = OmegaNum.correct(val),OmegaNum.correct(val2)
+	if OmegaNum.eq(val2, 1) then
 		return val
 	end
-	if ree.le(val2,ZERO) then
-		return ree.recip(ree.root(val, ree.neg(val2)))
+	if OmegaNum.le(val2,ZERO) then
+		return OmegaNum.recip(OmegaNum.root(val, OmegaNum.neg(val2)))
 	end
-	if ree.le(val2, 1) then
-		return ree.pow(val, ree.recip(val2))
+	if OmegaNum.le(val2, 1) then
+		return OmegaNum.pow(val, OmegaNum.recip(val2))
 	end
-	if ree.le(val, ZERO)and ree.isint(val2) and ree.eq(ree.mod(val2, 2), 1) then
-		return ree.neg(ree.root(ree.neg(val), val2))
+	if OmegaNum.le(val, ZERO)and OmegaNum.isint(val2) and OmegaNum.eq(OmegaNum.mod(val2, 2), 1) then
+		return OmegaNum.neg(OmegaNum.root(OmegaNum.neg(val), val2))
 	end
-	if ree.le(val, ZERO) then
+	if OmegaNum.le(val, ZERO) then
 		return NAN
 	end
-	if ree.eq(val, 1) then
+	if OmegaNum.eq(val, 1) then
 		return {1, {1}}
 	end
-	if ree.eq(val, ZERO) then
+	if OmegaNum.eq(val, ZERO) then
 		return ZERO
 	end
-	if ree.me(ree.max(val, val2), maxPOW) then
-		if ree.me(val, val2)  then
+	if OmegaNum.me(OmegaNum.max(val, val2), maxPOW) then
+		if OmegaNum.me(val, val2)  then
 			return val
 		else
 			return ZERO
 		end
 	end
-	return ree.pow(10, ree.div(ree.log10(val), val2))
+	return OmegaNum.pow(10, OmegaNum.div(OmegaNum.log10(val), val2))
 end
 
-function ree.mul(val,val1)
-	local x = ree.correct(val)
-	local y= ree.correct(val1)
+function OmegaNum.mul(val,val1)
+	local x = OmegaNum.correct(val)
+	local y= OmegaNum.correct(val1)
 	if x[1]*y[1]==-1 then
-		return ree.neg( ree.mul( ree.abs(x), ree.abs(y) ) )
+		return OmegaNum.neg( OmegaNum.mul( OmegaNum.abs(x), OmegaNum.abs(y) ) )
 	end
 	if x[1] == -1 then
-		return ree.mul(ree.abs(x),ree.abs(y))
+		return OmegaNum.mul(OmegaNum.abs(x),OmegaNum.abs(y))
 	end
-	if ree.eq(x,ZERO) or ree.eq(y,ZERO) then
+	if OmegaNum.eq(x,ZERO) or OmegaNum.eq(y,ZERO) then
 		return ZERO
 	end
-	if ree.eq(y,{1,{1}}) then
+	if OmegaNum.eq(y,{1,{1}}) then
 		return x
 	end
-	if ree.me(ree.max(x,y),maxMUL) then
-		return ree.max(x, y)
+	if OmegaNum.me(OmegaNum.max(x,y),maxMUL) then
+		return OmegaNum.max(x, y)
 	end
-	local n = ree.toNumber(x)*ree.toNumber(y)
+	local n = OmegaNum.toNumber(x)*OmegaNum.toNumber(y)
 	if math.abs(n) <= maxAllowed then
-		return ree.correct(n)
+		return OmegaNum.correct(n)
 	end
-	return ree.pow(10,ree.add(ree.log10(x),ree.log10(y)))
+	return OmegaNum.pow(10,OmegaNum.add(OmegaNum.log10(x),OmegaNum.log10(y)))
 end
 
-function ree.floor(x)
-	if ree.isint(x) then
+function OmegaNum.floor(x)
+	if OmegaNum.isint(x) then
 		return x
 	end
-	return ree.correct(math.floor(ree.toNumber(x)))
+	return OmegaNum.correct(math.floor(OmegaNum.toNumber(x)))
 end
 
-function ree.ceil(x)
-	if ree.isint(x) then
+function OmegaNum.ceil(x)
+	if OmegaNum.isint(x) then
 		return x
 	end
-	return ree.correct(math.ceil(ree.toNumber(x)))
+	return OmegaNum.correct(math.ceil(OmegaNum.toNumber(x)))
 end
 
-function ree.div(val,val1)
-	local x = ree.correct(val)
-	local y = ree.correct(val1)
+function OmegaNum.div(val,val1)
+	local x = OmegaNum.correct(val)
+	local y = OmegaNum.correct(val1)
 	if x[1]*y[1]==-1 then
-		return ree.neg(ree.div(ree.abs(x), ree.abs(y)))
+		return OmegaNum.neg(OmegaNum.div(OmegaNum.abs(x), OmegaNum.abs(y)))
 	end
 	if x[1] == -1 then
-		return ree.div(ree.abs(x),ree.abs(y))
+		return OmegaNum.div(OmegaNum.abs(x),OmegaNum.abs(y))
 	end
-	if ree.eq(y, ZERO) then
+	if OmegaNum.eq(y, ZERO) then
 		return NAN
 	end
-	if ree.eq(y,{1,{1}}) then
+	if OmegaNum.eq(y,{1,{1}}) then
 		return x
 	end
-	if ree.eq(x,ZERO) then
+	if OmegaNum.eq(x,ZERO) then
 		return ZERO
 	end
-	if ree.me(ree.max(x,y),maxMUL) then
-		if ree.me(x,y) then
+	if OmegaNum.me(OmegaNum.max(x,y),maxMUL) then
+		if OmegaNum.me(x,y) then
 			return x
 		end
 		return ZERO
 	end
-	local FILTER1 = ree.toNumber(x)/ree.toNumber(y)
+	local FILTER1 = OmegaNum.toNumber(x)/OmegaNum.toNumber(y)
 	if math.abs(FILTER1) <= maxAllowed then
-		return ree.correct(FILTER1)
+		return OmegaNum.correct(FILTER1)
 	end
-	local qq = ree.pow(10, ree.sub(ree.log10(x),ree.log10(y)) )
-	local qqw = ree.floor(qq)
-	if ree.le(ree.sub(qq,qqw), 1e-9) then
+	local qq = OmegaNum.pow(10, OmegaNum.sub(OmegaNum.log10(x),OmegaNum.log10(y)) )
+	local qqw = OmegaNum.floor(qq)
+	if OmegaNum.le(OmegaNum.sub(qq,qqw), 1e-9) then
 		return qqw
 	end
 	return qq
 end
 
-function ree.add(x,y)
-	x = ree.correct(x)
-	y = ree.correct(y) 
+function OmegaNum.add(x,y)
+	x = OmegaNum.correct(x)
+	y = OmegaNum.correct(y)
 	if x[1] == -1 then
-		return ree.neg(ree.add(ree.neg(x), ree.neg(y)))
+		return OmegaNum.neg(OmegaNum.add(OmegaNum.neg(x), OmegaNum.neg(y)))
 	end
 	if y[1] == -1 then
-		return ree.sub(x, ree.neg(y))
+		return OmegaNum.sub(x, OmegaNum.neg(y))
 	end
-	if ree.eq(x, ZERO) then
+	if OmegaNum.eq(x, ZERO) then
 		return y
 	end
-	if ree.eq(y, ZERO) then
+	if OmegaNum.eq(y, ZERO) then
 		return x
 	end
-	local p = ree.min(x,y)
-	local q = ree.max(x,y)
+	local p = OmegaNum.min(x,y)
+	local q = OmegaNum.max(x,y)
 	local a = nil
-	if ree.me(q,maxADD) or ree.me(ree.div(q,p), maxInt) then
+	if OmegaNum.me(q,maxADD) or OmegaNum.me(OmegaNum.div(q,p), maxInt) then
 		a = q
 	elseif q[2][2] == nil then
-		a = ree.correct(ree.toNumber(x)+ree.toNumber(y))
+		a = OmegaNum.correct(OmegaNum.toNumber(x)+OmegaNum.toNumber(y))
 	elseif q[2][2] == 1 then
 		local b = nil
 		if p[2][2] then
@@ -949,37 +949,37 @@ function ree.add(x,y)
 		else
 			b = math.log10(p[2][1])
 		end
-		a = ree.correct({1, {b+math.log10(math.pow(10,q[2][1]-b)+1) , 1}})
+		a = OmegaNum.correct({1, {b+math.log10(math.pow(10,q[2][1]-b)+1) , 1}})
 	end
 	return a
 end
 
-function ree.sub(x,y)
-	x = ree.correct(x)
-	y = ree.correct(y) 
+function OmegaNum.sub(x,y)
+	x = OmegaNum.correct(x)
+	y = OmegaNum.correct(y)
 	if x[1] == -1 then
-		return ree.neg(ree.sub(ree.neg(x),ree.neg(y)))
+		return OmegaNum.neg(OmegaNum.sub(OmegaNum.neg(x),OmegaNum.neg(y)))
 	end
 	if y[1] == -1 then
-		return ree.add(x, ree.neg(y))
+		return OmegaNum.add(x, OmegaNum.neg(y))
 	end
-	if ree.eq(x,y) then
+	if OmegaNum.eq(x,y) then
 		return ZERO
 	end
-	if ree.eq(y,ZERO) then
+	if OmegaNum.eq(y,ZERO) then
 		return x
 	end
-	local p = ree.min(x,y)
-	local q = ree.max(x,y)
-	local FILTER2= ree.me(y,x)
+	local p = OmegaNum.min(x,y)
+	local q = OmegaNum.max(x,y)
+	local FILTER2= OmegaNum.me(y,x)
 	local FILTER1;
-	if ree.me(q,maxADD) or ree.me(ree.div(q,p), maxADD) then
+	if OmegaNum.me(q,maxADD) or OmegaNum.me(OmegaNum.div(q,p), maxADD) then
 		FILTER1=q
 		if FILTER2 then
-			FILTER1 = ree.neg(FILTER1)
+			FILTER1 = OmegaNum.neg(FILTER1)
 		end
 	elseif q[2][2] == nil then
-		FILTER1 = ree.correct(ree.toNumber(x)-ree.toNumber(y))
+		FILTER1 = OmegaNum.correct(OmegaNum.toNumber(x)-OmegaNum.toNumber(y))
 	elseif q[2][2] == 1 then
 		local b = nil
 		if p[2][2] then
@@ -989,61 +989,61 @@ function ree.sub(x,y)
 		end
 		local DIFF = q[2][1]-b
 		if DIFF > 20 then
-			FILTER1 = ree.max(x,y)
+			FILTER1 = OmegaNum.max(x,y)
 			if FILTER2 then
-				return ree.neg(FILTER1)
+				return OmegaNum.neg(FILTER1)
 			end
 			return FILTER1
 		end
-		FILTER1 = ree.correct({1, {b+math.log10(math.pow(10,q[2][1]-b)-1) , 1}})
+		FILTER1 = OmegaNum.correct({1, {b+math.log10(math.pow(10,q[2][1]-b)-1) , 1}})
 		if FILTER2 then
-			FILTER1 = ree.neg(FILTER1)
+			FILTER1 = OmegaNum.neg(FILTER1)
 		end
 	end
 	return FILTER1
 end
 
-function ree.sqrt(x)
-	return ree.root(x,2)
+function OmegaNum.sqrt(x)
+	return OmegaNum.root(x,2)
 end
 
-function ree.log(x,y)
+function OmegaNum.log(x,y)
 	y = y or 2.7182818284590452353602874
-	return ree.div(ree.log10(x),ree.log10(y))
+	return OmegaNum.div(OmegaNum.log10(x),OmegaNum.log10(y))
 end
 
-function ree.exp(x)
-	return ree.pow(2.7182818284590452353602874, x)
+function OmegaNum.exp(x)
+	return OmegaNum.pow(2.7182818284590452353602874, x)
 end
 
-function ree.maxabs(x,y)
-	return ree.max(ree.abs(x),ree.abs(y))
+function OmegaNum.maxabs(x,y)
+	return OmegaNum.max(OmegaNum.abs(x),OmegaNum.abs(y))
 end
 
-function ree.eternitytoOmega(num)
+function OmegaNum.eternitytoOmega(num)
 	local new = {num[1], {}}
 	new[2][1] = num[3]
 	new[2][2] = (num[2]>=1) and num[2] or nil
 	return new
 end
 
-function ree.pow10(x)
-	return ree.pow(10,x)
+function OmegaNum.pow10(x)
+	return OmegaNum.pow(10,x)
 end
 
-function ree.gamma(x)
-	x = ree.correct(x)
-	if ree.me(x,maxPOW) then
+function OmegaNum.gamma(x)
+	x = OmegaNum.correct(x)
+	if OmegaNum.me(x,maxPOW) then
 		return x
 	end
-	if ree.me(x,maxADD) then
-		return ree.exp(x)
+	if OmegaNum.me(x,maxADD) then
+		return OmegaNum.exp(x)
 	end
-	if ree.me(x,maxInt) then
-		return ree.exp(ree.mul(x,ree.sub(ree.log(x),1)))
+	if OmegaNum.me(x,maxInt) then
+		return OmegaNum.exp(OmegaNum.mul(x,OmegaNum.sub(OmegaNum.log(x),1)))
 	end
-	if ree.leeq(x,171) then
-		return ree.correct(fgamma(ree.toNumber(x)))
+	if OmegaNum.leeq(x,171) then
+		return OmegaNum.correct(fgamma(OmegaNum.toNumber(x)))
 	end
 	local q = x[2][1]
 	if q>1 then
@@ -1057,7 +1057,7 @@ function ree.gamma(x)
 		local adj=1/lm
 		local l2 = l+adj
 		if (l2==l) then
-			return ree.exp(l)
+			return OmegaNum.exp(l)
 		end
 		l=l2
 		np*=2
@@ -1065,7 +1065,7 @@ function ree.gamma(x)
 		adj=1/lm
 		l2=l-adj
 		if (l2==l) then
-			return ree.exp(l)
+			return OmegaNum.exp(l)
 		end
 		l=l2
 		np*=n2
@@ -1076,9 +1076,9 @@ function ree.gamma(x)
 		lm=1680*np
 		lt=1/lm
 		l-=lt
-		return ree.exp(l)
+		return OmegaNum.exp(l)
 	end
-	return ree.recip(x)
+	return OmegaNum.recip(x)
 end
 
 function fact(x) -- x!
@@ -1089,31 +1089,31 @@ function fact(x) -- x!
 	return amo
 end
 
-function ree.fact(x)
-	x = ree.correct(x)
-	if ree.leeq(x, 170) then
-		x = ree.toNumber(x)
+function OmegaNum.fact(x)
+	x = OmegaNum.correct(x)
+	if OmegaNum.leeq(x, 170) then
+		x = OmegaNum.toNumber(x)
 		if x == math.floor(x) then
-			return ree.correct(fact(x))
+			return OmegaNum.correct(fact(x))
 		end
-		return ree.correct(fgamma(ree.toNumber(x)+1))
+		return OmegaNum.correct(fgamma(OmegaNum.toNumber(x)+1))
 	end
-	return ree.gamma(ree.add(x,1))
+	return OmegaNum.gamma(OmegaNum.add(x,1))
 end
 
-function ree.rand(min, max)
+function OmegaNum.rand(min, max)
 	local seed = math.random()
-	local even = ree.sub(max, min)
-	even = ree.mul(even, seed)
-	return ree.add(even, min)
+	local even = OmegaNum.sub(max, min)
+	even = OmegaNum.mul(even, seed)
+	return OmegaNum.add(even, min)
 end
 
-function ree.exporand(min, max)
-	return ree.exp(ree.rand(ree.log(min), ree.log(max)))
+function OmegaNum.exporand(min, max)
+	return OmegaNum.exp(OmegaNum.rand(OmegaNum.log(min), OmegaNum.log(max)))
 end
 
-function ree.toBigNum(val)
-	val = ree.correct(val)
+function OmegaNum.toBigNum(val)
+	val = OmegaNum.correct(val)
 	local b = {}
 	if #val[2] == 1 then
 		return errorcorrection({val[2][1]*val[1],0})
@@ -1127,13 +1127,13 @@ function ree.toBigNum(val)
 	return {1*val[1], INF}
 end
 
-function ree.toScientific(x)
-	x = ree.correct(x)
-	if ree.le(ree.abs(x), 1000) then
-		return ree.toNumber(x)
+function OmegaNum.toScientific(x)
+	x = OmegaNum.correct(x)
+	if OmegaNum.le(OmegaNum.abs(x), 1000) then
+		return OmegaNum.toNumber(x)
 	end
-	if ree.me(ree.abs(x),maxScientific) then
-		return ree.toEs(x)
+	if OmegaNum.me(OmegaNum.abs(x),maxScientific) then
+		return OmegaNum.toEs(x)
 	end
 	local function Decimal(val, amo)
 		local a = math.round(val*10^amo)
@@ -1161,37 +1161,37 @@ function ree.toScientific(x)
 	end
 end
 
-function ree.toShortScientific(x)
-	x = ree.correct(x)
-	if ree.le(ree.abs(x),1000) then
-		return ree.toNumber(x)
+function OmegaNum.toShortScientific(x)
+	x = OmegaNum.correct(x)
+	if OmegaNum.le(OmegaNum.abs(x),1000) then
+		return OmegaNum.toNumber(x)
 	end
-	if ree.me(ree.abs(x),maxScientific) then
-		return ree.toEs(x)
+	if OmegaNum.me(OmegaNum.abs(x),maxScientific) then
+		return OmegaNum.toEs(x)
 	end
 	local x1 = x[1]
 	local x2 = x[2]
 
 	if x1 == -1 then
-		return "-" .. string.rep("e", x2[2]) .. short(ree.toBigNum(x2[1]))
+		return "-" .. string.rep("e", x2[2]) .. short(OmegaNum.toBigNum(x2[1]))
 	else
-		return string.rep("e", x2[2]) .. short(ree.toBigNum(x2[1]))
+		return string.rep("e", x2[2]) .. short(OmegaNum.toBigNum(x2[1]))
 	end
 end
 
-function ree.short(x)
-	x = ree.correct(x)
-	if ree.meeq(ree.abs(x),maxSuffix) then
-		return ree.toScientific(x)
+function OmegaNum.short(x)
+	x = OmegaNum.correct(x)
+	if OmegaNum.meeq(OmegaNum.abs(x),maxSuffix) then
+		return OmegaNum.toScientific(x)
 	end
-	return short(ree.toBigNum(x))
+	return short(OmegaNum.toBigNum(x))
 end
 
-function ree.toEnt(x)
-	x = ree.correct(x)
+function OmegaNum.toEnt(x)
+	x = OmegaNum.correct(x)
 	if x[2][3] then
 		if x[2][3] > 1 or x[2][1] >= 15.954589770191003 or x[2][2] > 1 then
-			return ree.toHyperE(x)
+			return OmegaNum.toHyperE(x)
 		end
 		x[2][2] = 10^x[2][1]
 		x[2][3] = nil
@@ -1203,35 +1203,35 @@ function ree.toEnt(x)
 	return part .. x[2][1]
 end
 
-function ree.toShortEnt(x)
-	x = ree.correct(x)
+function OmegaNum.toShortEnt(x)
+	x = OmegaNum.correct(x)
 	if x[2][3] then
 		if x[2][3] > 1 or x[2][1] >= 15.954589770191003 or x[2][2] > 1 then
-			return ree.toShortHyperE(x)
+			return OmegaNum.toShortHyperE(x)
 		end
 		x[2][2] = 10^x[2][1]
 		x[2][3] = nil
 	end
-	local part = "(E^" .. ree.short(x[2][2]) .. ")"
+	local part = "(E^" .. OmegaNum.short(x[2][2]) .. ")"
 	if x[1] == -1 then
 		part = "-" .. part
 	end
-	return part .. ree.short(x[2][1])
+	return part .. OmegaNum.short(x[2][1])
 end
 
-function ree.toEs(x)
-	x = ree.correct(x)
+function OmegaNum.toEs(x)
+	x = OmegaNum.correct(x)
 	if #x[2] > 2 then
-		return ree.toEnt(x)
+		return OmegaNum.toEnt(x)
 	end
 	if x[2][2] == nil then
-		return ree.short(x)
+		return OmegaNum.short(x)
 	end
 	if x[2][2] > maxEs then
-		return ree.toEnt(x)
+		return OmegaNum.toEnt(x)
 	end
 	if x[1] == -1 then
-		return "-" .. ree.toEs(ree.abs(x))
+		return "-" .. OmegaNum.toEs(OmegaNum.abs(x))
 	end
 	local function Decimal(val, amo)
 		local a = math.floor(val*10^amo)
@@ -1242,19 +1242,19 @@ function ree.toEs(x)
 	return estring .. Decimal(x[2][1],4)
 end
 
-function ree.toShortEs(x)
-	x = ree.correct(x)
+function OmegaNum.toShortEs(x)
+	x = OmegaNum.correct(x)
 	if #x[2] > 2 then
-		return ree.toShortEnt(x)
+		return OmegaNum.toShortEnt(x)
 	end
 	if x[2][2] == nil then
-		return ree.short(x)
+		return OmegaNum.short(x)
 	end
 	if x[2][2] > maxEs then
-		return ree.toShortEnt(x)
+		return OmegaNum.toShortEnt(x)
 	end
 	if x[1] == -1 then
-		return "-" .. ree.toShortEs(ree.abs(x))
+		return "-" .. OmegaNum.toShortEs(OmegaNum.abs(x))
 	end
 	local function Decimal(val, amo)
 		local a = math.floor(val*10^amo)
@@ -1262,18 +1262,18 @@ function ree.toShortEs(x)
 		return a
 	end
 	local estring = string.rep("e", x[2][2])
-	return estring .. ree.short(Decimal(x[2][1],4))
+	return estring .. OmegaNum.short(Decimal(x[2][1],4))
 end
 
-function ree.toHyperE(x)
-	x = ree.correct(x)
+function OmegaNum.toHyperE(x)
+	x = OmegaNum.correct(x)
 	if x[1] == -1 then
-		return "-" .. ree.toHyperE(ree.abs(x))
+		return "-" .. OmegaNum.toHyperE(OmegaNum.abs(x))
 	end
-	if ree.le(x,maxInt) then
-		return ree.short(x)
+	if OmegaNum.le(x,maxInt) then
+		return OmegaNum.short(x)
 	end
-	if ree.le(x,maxADD) then
+	if OmegaNum.le(x,maxADD) then
 		return "E" .. x[2][1]
 	end
 	local function Decimal(val, amo)
@@ -1288,68 +1288,68 @@ function ree.toHyperE(x)
 	return str
 end
 
-function ree.toShortHyperE(x)
-	x = ree.correct(x)
+function OmegaNum.toShortHyperE(x)
+	x = OmegaNum.correct(x)
 	if x[1] == -1 then
-		return "-" .. ree.toShortHyperE(ree.abs(x))
+		return "-" .. OmegaNum.toShortHyperE(OmegaNum.abs(x))
 	end
-	if ree.le(x,maxInt) then
-		return ree.short(x)
+	if OmegaNum.le(x,maxInt) then
+		return OmegaNum.short(x)
 	end
-	if ree.le(x,maxADD) then
-		return "E" .. ree.short(x[2][1])
+	if OmegaNum.le(x,maxADD) then
+		return "E" .. OmegaNum.short(x[2][1])
 	end
 	local function Decimal(val, amo)
 		local a = math.floor(val*10^amo)
 		a = a/10^amo
 		return a
 	end
-	local str = "E" ..  ree.short(Decimal(x[2][1],PrecisionDisplay)).."#" .. ree.short(x[2][2])
+	local str = "E" ..  OmegaNum.short(Decimal(x[2][1],PrecisionDisplay)).."#" .. OmegaNum.short(x[2][2])
 	for i=3,#x[2] do
-		str ..= "#" .. ree.short(x[2][i]+1)
+		str ..= "#" .. OmegaNum.short(x[2][i]+1)
 	end
 	return str
 end
 
-function ree.lambertw(x)
-	x = ree.correct(x)
-	if ree.leeq(x,1e308) then
-		return f_lambertw(ree.toNumber(x))
+function OmegaNum.lambertw(x)
+	x = OmegaNum.correct(x)
+	if OmegaNum.leeq(x,1e308) then
+		return f_lambertw(OmegaNum.toNumber(x))
 	end
-	if ree.me(x, maxPOW) then
+	if OmegaNum.me(x, maxPOW) then
 		return x
 	end
-	if ree.me(x, maxMUL) then
-		return ree.log10(x)
+	if OmegaNum.me(x, maxMUL) then
+		return OmegaNum.log10(x)
 	end
 	return Hlambertw(x)
 end
 
-function ree.slog(r,base)
-	local x = copytab(ree.correct(r))
-	base = ree.toOmega(base)
-	if ree.le(x, ZERO) then
+function OmegaNum.slog(r,base)
+	local x = copytab(OmegaNum.correct(r))
+	base = OmegaNum.toOmega(base)
+	if OmegaNum.le(x, ZERO) then
 		return {-1,{1}}
 	end
-	if ree.eq(x,ONE)  then
+	if OmegaNum.eq(x,ONE)  then
 		return ZERO
 	end
-	if ree.eq(x,base) then
+	if OmegaNum.eq(x,base) then
 		return ONE
 	end
-	if ree.le(base, math.exp(1/2.7182818284)) then
+	if OmegaNum.le(base, math.exp(1/2.7182818284)) then
 		return x
 	end
-	if ree.me(ree.max(x,base),{1,{10000000000, 8, maxInt}}) then
-		if ree.me(x,base) then
+	if OmegaNum.me(OmegaNum.max(x,base),{1,{10000000000, 8, maxInt}}) then
+		if OmegaNum.me(x,base) then
 			return x
 		end
 		return ZERO
 	end
-	if ree.me(ree.max(x,base), maxPOW) then
-		if ree.me(x,base) then
+	if OmegaNum.me(OmegaNum.max(x,base), maxPOW) then
+		if OmegaNum.me(x,base) then
 			x[2][3] -= 1
-			return ree.sub(x,x[2][2])
+			return OmegaNum.sub(x,x[2][2])
 		end
 		return ZERO
 	end
@@ -1361,96 +1361,96 @@ function ree.slog(r,base)
 		x[2][2] -= p
 	end
 	for i=1,99 do
-		if ree.le(x, ZERO) then
-			x = ree.pow(base,x)
+		if OmegaNum.le(x, ZERO) then
+			x = OmegaNum.pow(base,x)
 			q-=1
-		else if ree.leeq(x,1) then
-				return ree.toOmega(q+ree.toNumber(x)-1)
-			else 
+		else if OmegaNum.leeq(x,1) then
+				return OmegaNum.toOmega(q+OmegaNum.toNumber(x)-1)
+			else
 				q += 1
-				x = ree.log(x,base)
+				x = OmegaNum.log(x,base)
 			end
 		end
 	end
-	if ree.me(x, 10) then
+	if OmegaNum.me(x, 10) then
 		return q
 	end
 end
 
-function ree.tetrate(x,y)
-	x = ree.correct(x)
-	y = ree.correct(y)
-	if ree.le(y,-2) then
+function OmegaNum.tetrate(x,y)
+	x = OmegaNum.correct(x)
+	y = OmegaNum.correct(y)
+	if OmegaNum.le(y,-2) then
 		return NAN
 	end
-	if ree.eq(x,ZERO) then
-		if ree.eq(y,0) then
+	if OmegaNum.eq(x,ZERO) then
+		if OmegaNum.eq(y,0) then
 			return NAN
 		end
-		if ree.eq(ree.mod(y,2),0) then
+		if OmegaNum.eq(OmegaNum.mod(y,2),0) then
 			return ZERO
 		end
 		return {1,{1}}
 	end
-	if ree.eq(x,{1,{1}}) then
-		if ree.eq(y, {-1,{1}}) then
+	if OmegaNum.eq(x,{1,{1}}) then
+		if OmegaNum.eq(y, {-1,{1}}) then
 			return NAN
 		end
 		return {1,{1}}
 	end
-	if ree.eq(y, {-1,{1}}) then
+	if OmegaNum.eq(y, {-1,{1}}) then
 		return ZERO
 	end
-	if ree.eq(y, 0) then
+	if OmegaNum.eq(y, 0) then
 		return {1,{1}}
 	end
-	if ree.eq(y, 1) then
+	if OmegaNum.eq(y, 1) then
 		return x
 	end
-	if ree.eq(y,2) then
-		return ree.pow(x,x)
+	if OmegaNum.eq(y,2) then
+		return OmegaNum.pow(x,x)
 	end
-	if ree.eq(x,2) then
-		if ree.eq(y,3) then
-			return ree.fromNumber(16)
+	if OmegaNum.eq(x,2) then
+		if OmegaNum.eq(y,3) then
+			return OmegaNum.fromNumber(16)
 		end
-		if ree.eq(y,4) then
-			return ree.fromNumber(65536)
+		if OmegaNum.eq(y,4) then
+			return OmegaNum.fromNumber(65536)
 		end
 	end
-	local max = ree.max(x,y)
-	if ree.me(max, {1,{10000000000, 8, maxInt}}) then
+	local max = OmegaNum.max(x,y)
+	if OmegaNum.me(max, {1,{10000000000, 8, maxInt}}) then
 		return max
 	end
-	if ree.me(x, maxPOW) or ree.me(y, maxInt) then
-		if ree.le(x, math.exp(1/2.7182818284)) then
-			local nel = ree.neg(ree.log(x))
-			return ree.div(ree.lambertw(nel), nel)
+	if OmegaNum.me(x, maxPOW) or OmegaNum.me(y, maxInt) then
+		if OmegaNum.le(x, math.exp(1/2.7182818284)) then
+			local nel = OmegaNum.neg(OmegaNum.log(x))
+			return OmegaNum.div(OmegaNum.lambertw(nel), nel)
 		end
-		local q = copytab(ree.add(ree.slog(x,10),y))
+		local q = copytab(OmegaNum.add(OmegaNum.slog(x,10),y))
 		q[2][3] = (y[2][3] or 0)+1
-		return ree.correct(q)
+		return OmegaNum.correct(q)
 	end
-	local yo = ree.toNumber(y)
+	local yo = OmegaNum.toNumber(y)
 	local fo = math.floor(yo)
-	local ro = ree.pow(x, yo-fo)
+	local ro = OmegaNum.pow(x, yo-fo)
 	local mo = maxADD
 	local lo = NAN
 	local count = 0
 	for i=1,100 do
-		if not(fo~=0 and ree.le(ro,mo)) then break end
+		if not(fo~=0 and OmegaNum.le(ro,mo)) then break end
 		count +=1
 		if fo>0 then
-			ro = ree.pow(x,ro)
-			if ree.eq(lo,ro) then
+			ro = OmegaNum.pow(x,ro)
+			if OmegaNum.eq(lo,ro) then
 				fo=0
 				break
 			end
 			lo=ro
 			fo -= 1
 		else
-			ro = ree.log(ro,x)
-			if ree.eq(lo,ro) then
+			ro = OmegaNum.log(ro,x)
+			if OmegaNum.eq(lo,ro) then
 				fo=0
 				break
 			end
@@ -1458,138 +1458,120 @@ function ree.tetrate(x,y)
 			fo += 1
 		end
 	end
-	if count == 100 or ree.le(x,math.exp(1/2.7182818284)) then
+	if count == 100 or OmegaNum.le(x,math.exp(1/2.7182818284)) then
 		fo = 0
 	end
 	ro[2][2] = ro[2][2] and ro[2][2]+fo or fo
-	return ree.correct(ro)
+	return OmegaNum.correct(ro)
 end
 
-ree.tetr = ree.tetrate
+OmegaNum.tetr = OmegaNum.tetrate
 
-function ree.pentate(x,y)
-	return ree.hyper(5,x,y)
+function OmegaNum.pentate(x,y)
+	return OmegaNum.hyper(5,x,y)
 end
 
-ree.pent = ree.pentate
+OmegaNum.pent = OmegaNum.pentate
 
-function ree.hexate(x,y)
-	return ree.hyper(6,x,y)
+function OmegaNum.hexate(x,y)
+	return OmegaNum.hyper(6,x,y)
 end
 
-ree.hext = ree.hexate
+OmegaNum.hext = OmegaNum.hexate
 
-function ree.hyper(n, x, y)
-	x = ree.correct(x)
-	y = ree.correct(y)
+function OmegaNum.hyper(n,x,y)
+	x = OmegaNum.correct(x)
+	y = OmegaNum.correct(y)
+	n = math.floor(n) -- To force it to be an integer since non-integer hyperoperations are all undefined.
 
-	n = math.floor(n)
-
-	if n >= ArrowLimit + 2 then 
-		warn("Number is too large to reasonably handle. OmegaNum attempted to " .. n .. "-ate.") 
-		return INF 
-	end 
-
-	if n == 1 then return ree.add(x, y) end 
-	if n == 2 then return ree.mul(x, y) end 
-	if n == 3 then return ree.pow(x, y) end 
- 	if n == 4 then return ree.tetr(x, y) end 
-
-	if ree.le(y, -1) then return NAN end 
-	if ree.eq(y, ZERO) then return {1, {1}} end 
-	if ree.eq(y, 1) then return x end 
-
-	if ree.eq(y, 2) then 
-		return ree.hyper(n - 1, x, x) 
-	end 
-
-	local arrowsNum = n - 2
-
-	-- check inside the nested array as shortcut
-	local max = ree.max(x, y) 
-	if max and max[2] and max[2][arrowsNum + 2] and max[2][arrowsNum + 2] >= maxInt then 
-		return max 
-	end 
-
-	-- check if y is greater than MSI
-	local y_is_huge = false
-	if y and y[2] then
-		if #y[2] > 1 or (y[2][1] and y[2][1] >= maxInt) then
-			y_is_huge = true
-		end
+	if n >= ArrowLimit + 2 then
+		warn("Number is too large to reasonably handle. OmegaNum attempted to " .. n .. "-ate.")
+		return INF
 	end
 
-	-- perform operations directly into x[2] for high-scaling boundary tier matching
-	if (x and x[2] and x[2][arrowsNum + 1] and x[2][arrowsNum + 1] >= maxInt) or y_is_huge then 
-		local r 
-		if x and x[2] and x[2][arrowsNum + 1] and x[2][arrowsNum + 1] >= maxInt then 
-			r = copytab(x) 
-			r[2][arrowsNum + 1] = r[2][arrowsNum + 1] - 1 
-			r = ree.correct(r) 
-		elseif x and x[2] and x[2][arrowsNum] and x[2][arrowsNum] >= maxInt then 
-			r = ree.correct({1, {x[2][arrowsNum]}})
-		else 
-			r = ZERO 
-		end 
+	-- Handle special cases
+	if n < 0 then
+		warn("Hyperoperations are not defined for n < 0.")
+		return NAN
+	end
+	if n == 0 then return OmegaNum.add(x, 1) end -- A hyper-0 function is the successor function, which only adds 1 to the number.
+	if n == 1 then return OmegaNum.add(x, y) end
+	if n == 2 then return OmegaNum.mul(x, y) end
+	if n == 3 then return OmegaNum.pow(x, y) end
+	if n == 4 then return OmegaNum.tetr(x, y) end
 
-		local j = ree.add(r, y) 
-		if j and j[2] then
-			-- fill missing indices with 0 in ro[2]
-			for i = #j[2] + 1, arrowsNum do
-				j[2][i] = 0
-			end
-			j[2][arrowsNum + 1] = (j[2][arrowsNum + 1] or 0) + 1 
+	if OmegaNum.le(y, -1) then return NAN end
+	if OmegaNum.eq(y, ZERO) then return {1, {1}} end
+	if OmegaNum.eq(y, 1) then return x end
+	if OmegaNum.eq(y, 2) then
+		return OmegaNum.hyper(n - 1, x, x)
+	end
+
+	-- Check for maximum value, which should be 10{n+1}MaxInt
+	local max = OmegaNum.max(x, y)
+	if OmegaNum.me(max, "[10000000000,"..string.rep("8,",(n-3))..maxInt.."]") then
+		return max
+	end
+
+	local arrowCount = n-2
+
+	local ro
+	if OmegaNum.me(x, "[10000000000,"..string.rep("8,",(n-4))..maxInt.."]") or OmegaNum.me(y, maxInt) then
+		if OmegaNum.me(x, "[10000000000,"..string.rep("8,",(n-4))..maxInt.."]") then
+			ro = copytab(x)
+			ro[2][arrowCount+1] -= 1
+			ro = OmegaNum.correct(ro)
+		elseif OmegaNum.me(x, "[10000000000,"..string.rep("8,",(n-5))..maxInt.."]") then
+			ro = x[2][arrowCount]
+		else
+			ro = ZERO
 		end
-		return ree.correct(j) 
-	end 
+		local jo = OmegaNum.add(ro, y)
+		-- Fill missing or nil indicies in the array with 0's
+		for i = 1, arrowCount + 1 do
+			if jo[2][i] == nil then
+				jo[2][i] = 0
+			end
+		end
+		jo[2][arrowCount+1] = (jo[2][arrowCount+1] or 0)+1
+		return OmegaNum.correct(jo)
+	end
+	-- The hyper-machine itself
+	local yo = OmegaNum.toNumber(y)
+	local fo = math.floor(yo)
+	ro = OmegaNum.hyper(n-1, x, (yo-fo))
+	local count = 0
+	local mo = "[10000000000,"..string.rep("8,",(n-5))..maxInt.."]"
+	while fo ~= 0 and OmegaNum.le(ro, mo) and count < 100 do
+		if fo > 0 then
+			ro = OmegaNum.hyper(n-1, x, ro)
+			fo = fo - 1
+		end
+		count = count + 1
+	end
 
-	local yo = ree.toNumber(y) 
-	local fo = math.floor(yo) 
-
-	local remainder_y = ree.correct(yo - fo)
-	local ro = ree.hyper(n - 1, x, remainder_y) 
-	ro = ree.correct(ro)
-
-	local count = 0 
-	for i = 1, 100 do 
-		if fo == 0 then break end
-
-		-- safeguard - check for maxInt in ro[2] before proceeding inside sub-array
-		if ro and ro[2] and ro[2][arrowsNum] and ro[2][arrowsNum] >= maxInt then 
-			break 
-		end 
-
-		count += 1 
-		if fo > 0 then 
-			ro = ree.hyper(n - 1, x, ro)
-			ro = ree.correct(ro)
-			fo -= 1 
-		end 
-	end 
-
-	--if count == 100 then fo = 0 end 
-
-	if ro and ro[2] then
-		-- padding for empty structural array positions as explicit 0 values
-		for i = #ro[2] + 1, arrowsNum - 1 do
+	--if count == 100 then fo = 0 end
+	-- This bit is necessary. otherwise, it will make it return wrong values
+	for i = 1, arrowCount + 1 do
+		if ro[2][i] == nil then
 			ro[2][i] = 0
 		end
-		ro[2][arrowsNum] = (ro[2][arrowsNum] or 0) + fo 
 	end
 
-	return ree.correct(ro) 
+	ro[2][arrowCount] = ((ro[2][arrowCount] or 0) + fo) or fo
+	return OmegaNum.correct(ro)
 end
 
-function ree.lbencode(onum)
-	onum = ree.correct(onum)
-	if ree.eq(onum,0) then
+function OmegaNum.lbencode(onum)
+	onum = OmegaNum.correct(onum)
+	if OmegaNum.eq(onum,0) then
 		return 0
 		-- For maximum performance, you do not need to encode 0.
 	end
 	local sign = onum[1]
 	onum = onum[2]
 	-- #onum
-	local amo = #onum 
+	local amo = #onum
 	-- convert to float rn??
 	if amo == 1 then
 		-- mode 0: Native Float
@@ -1651,7 +1633,7 @@ function ree.lbencode(onum)
 	end
 end
 
-function ree.lbdecode(int)
+function OmegaNum.lbdecode(int)
 	if int == 0 then return {1, {0}} end
 	local sign = math.sign(int)
 	int = math.abs(int)
@@ -1755,7 +1737,7 @@ function errorcorrection(bnum)
 		bnum[1] = bnum[1] * -1
 	end
 	return bnum
-end	
+end
 
 function bnumtostr(bnum)
 	return tostring(bnum[1]) .. "e" .. tostring(bnum[2])
@@ -1766,7 +1748,7 @@ function bnumtofloat(bnum)
 end
 
 function commas(Value)
-	if math.abs(Value) < 1e3 then 
+	if math.abs(Value) < 1e3 then
 		return Value
 	end
 	local Number
@@ -1774,18 +1756,18 @@ function commas(Value)
 	if math.abs(Value) < 10^13 then
 		while (Number ~= 0) do
 			Formatted, Number = string.gsub(Formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
-		end 
+		end
 		return Formatted
 	elseif math.abs(Value) < 10^26 then
 		local Formatted2 = math.floor(Value / 10^12)
 		Formatted = math.fmod(Value, 10^12)
-		while Number ~= 0 do  
+		while Number ~= 0 do
 			Formatted2, Number = string.gsub(Formatted2, "^(-?%d+)(%d%d%d)", '%1,%2')
-		end 
+		end
 		Number = nil
-		while Number ~= 0 do   
+		while Number ~= 0 do
 			Formatted, Number = string.gsub(Formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
-		end 
+		end
 		local TpFormatted = math.fmod(Value, 10^12)
 		local String = Formatted2 .. ","
 		if TpFormatted == 0 then
@@ -1901,59 +1883,59 @@ end
 
 -- Making it easier for SamirDevs to use this for OperatorSim lol.
 
-function ree.onflt(onum)
-	return ree.toNumber(onum)
+function OmegaNum.onflt(onum)
+	return OmegaNum.toNumber(onum)
 end
 
-function ree.flton(flt)
-	return ree.toOmega(flt)
+function OmegaNum.flton(flt)
+	return OmegaNum.toOmega(flt)
 end
 
-function ree.onstr(onum)
-	return ree.toString(onum)
+function OmegaNum.onstr(onum)
+	return OmegaNum.toString(onum)
 end
 
-function ree.stron(str)
-	return ree.toOmega(str)
+function OmegaNum.stron(str)
+	return OmegaNum.toOmega(str)
 end
 
-function ree.equal(onum1,onum2)
-	return ree.eq(onum1,onum2)
+function OmegaNum.equal(onum1,onum2)
+	return OmegaNum.eq(onum1,onum2)
 end
 
-function ree.moreequal(onum1,onum2)
-	return ree.meeq(onum1,onum2)
+function OmegaNum.moOmegaNumqual(onum1,onum2)
+	return OmegaNum.meeq(onum1,onum2)
 end
 
-function ree.lessequal(onum1,onum2)
-	return ree.leeq(onum1,onum2)
+function OmegaNum.lessequal(onum1,onum2)
+	return OmegaNum.leeq(onum1,onum2)
 end
 
-function ree.more(onum1,onum2)
-	return ree.me(onum1,onum2)
+function OmegaNum.more(onum1,onum2)
+	return OmegaNum.me(onum1,onum2)
 end
 
-function ree.less(onum1,onum2)
-	return ree.le(onum1,onum2)
+function OmegaNum.less(onum1,onum2)
+	return OmegaNum.le(onum1,onum2)
 end
 
-function ree.abbreviate(onum)
-	onum = ree.correct(onum)
-	if ree.eq(onum,{1,{0}}) then
+function OmegaNum.abbreviate(onum)
+	onum = OmegaNum.correct(onum)
+	if OmegaNum.eq(onum,{1,{0}}) then
 		return "0"
-	elseif ree.le(onum, {1, {0.000000001}}) then
-		return "1 / " .. ree.short(ree.div(1, onum))
-	elseif ree.le(onum,maxSuffix) then
-		return ree.short(onum)
-	elseif ree.le(onum,maxScientific) then
-		return ree.toShortScientific(onum)
-	elseif ree.le(onum,{1,maxEs,1}) then
-		return ree.toShortEs(onum) 
-	elseif ree.le(onum,{1,maxInt,1}) then
-		return ree.toShortEnt(onum)
+	elseif OmegaNum.le(onum, {1, {0.000000001}}) then
+		return "1 / " .. OmegaNum.short(OmegaNum.div(1, onum))
+	elseif OmegaNum.le(onum,maxSuffix) then
+		return OmegaNum.short(onum)
+	elseif OmegaNum.le(onum,maxScientific) then
+		return OmegaNum.toShortScientific(onum)
+	elseif OmegaNum.le(onum,{1,maxEs,1}) then
+		return OmegaNum.toShortEs(onum)
+	elseif OmegaNum.le(onum,{1,maxInt,1}) then
+		return OmegaNum.toShortEnt(onum)
 	else
-		return ree.toShortHyperE(onum)
+		return OmegaNum.toShortHyperE(onum)
 	end
 end
 
-return ree
+return OmegaNum
