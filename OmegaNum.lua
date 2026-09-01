@@ -1479,6 +1479,10 @@ end
 
 OmegaNum.hext = OmegaNum.hexate
 
+--Allows hyper() to yield so it doesn't cause script timeout for large values of n
+local maxHyperExec = 1/60
+local nextYieldTime = os.clock() + maxHyperExec
+
 function OmegaNum.hyper(n,x,y)
 	x = OmegaNum.correct(x)
 	y = OmegaNum.correct(y)
@@ -1505,6 +1509,13 @@ function OmegaNum.hyper(n,x,y)
 	if OmegaNum.eq(y, 1) then return x end
 	if OmegaNum.eq(y, 2) then
 		return OmegaNum.hyper(n - 1, x, x)
+	end
+	
+	if math.fmod(n,50) == 0 then --Adjust the second parameter of the fmod as needed
+		if os.clock() >= nextYieldTime then
+			task.wait()
+			nextYieldTime = os.clock() + maxHyperExec
+		end
 	end
 
 	-- Check for maximum value, which should be 10{n+1}MaxInt
