@@ -1914,7 +1914,7 @@ function OmegaNum.equal(onum1,onum2)
 	return OmegaNum.eq(onum1,onum2)
 end
 
-function OmegaNum.moOmegaNumqual(onum1,onum2)
+function OmegaNum.moreequal(onum1,onum2)
 	return OmegaNum.meeq(onum1,onum2)
 end
 
