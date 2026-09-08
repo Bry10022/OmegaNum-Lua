@@ -1561,7 +1561,7 @@ function OmegaNum.hyper(n,x,y)
 		count = count + 1
 	end
 
-	--if count == 100 then fo = 0 end
+	if count == 100 then fo = 0 end
 	-- This bit is necessary. otherwise, it will make it return wrong values
 	for i = 1, arrowCount + 1 do
 		if ro[2][i] == nil then
