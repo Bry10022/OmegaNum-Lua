@@ -22,7 +22,7 @@ How to use:
 2. In scripts that want to use it, type local OmegaNum = require(game.ReplicatedStorage.OmegaNum)
 3. You can create a new OmegaNum by using the function OmegaNum.toOmega(number/string/table)
 3.1 You do not need the quotation marks for values smaller then 1e308, but for larger values, they are required. Otherwise, it will become Infinity.
-3.1 You can also do this by setting the value to {-1 or 1, {num1, num2, num3, …}}
+3.2 You can also do this by setting the value to {-1 or 1, {num1, num2, num3, …}}
 4. Use one of the methods below to perform a function on the number as necessary.
 
 Notes:
@@ -638,7 +638,7 @@ function OmegaNum.dispString(value)
 end
 
 --[[
-	Helper function for dispStringDecimalPlaces().
+	Helper function for dispStringDecimalPlaces.
 ]]
 function decimalPlaces(value, places)
 	--TODO: Find a way to keep up to n significant figures and trim any excessive digits.
@@ -755,7 +755,7 @@ function t1format(x, mult, y)
 	--Build suffix
 	local t1f = t1ones[x+1] 
 	if x >= 10 then 
-		t1f = t1ones[(x%10)+1] .. t1tens[(math.floor(x/10)%10)+1] .. tostring(t1hunds[math.floor(x/100)+1]) --tostring is needed here so it does not error
+		t1f = (t1ones[(x%10)+1] or "") .. (t1tens[(math.floor(x/10)%10)+1] or "") .. (t1hunds[math.floor(x/100)+1] or "")
 	end
 	return t1f
 end
@@ -790,7 +790,7 @@ function t2format(x, mult, y)
 	local t2fir = x % 10
 	local t2sec = math.floor(x / 10) % 10
 	local t2thi = math.floor(x / 100)
-	local t2h = tostring(t2hunds[t2thi+1] or "")
+	local t2h = (t2hunds[t2thi+1] or "")
 	local t2t = ""
 	local t2fo = ""
 	local lastt = x % 100
@@ -838,8 +838,8 @@ function t3format(x, mult, y, z)
 	if (mult and y > 0) or z >= 1000 then
 		t3f = t3ones[x+1]
 	end
-	local t3t = t3tens[(math.floor(x/10)%10)+1]
-	local t3h = tostring(t3hunds[math.floor(x/100)+1]) --tostring is needed here so it does not error
+	local t3t = (t3tens[(math.floor(x/10)%10)+1] or "")
+	local t3h = (t3hunds[math.floor(x/100)+1] or "")
 	if x % 100 == 0 then
 		t3h = t3h .. 't'
 	end
@@ -873,9 +873,9 @@ function t4format(x, mult)
 	end
 	--Build suffix
 	local t4m = {"", "K", "M", "G", "", "L", "F", "J", "S", "B", "Gl", "G", "S", "V", "M"}
-	local t4f = t4ills[x+1]
+	local t4f = (t4ills[x+1] or "")
 	if mult < 2 then 
-		t4f = t4m[x+1] .. t4f 
+		t4f = (t4m[x+1] or "") .. t4f 
 	end
 	return t4f
 end
@@ -980,7 +980,7 @@ end
 
 --[[
 	Helper function for FGHJ notation.
-	This basically does the opposite of fix().
+	This basically does the opposite of fix.
 	Set smallTop to true to force top value to be below 10.
 ]]
 function polarize(array, smallTop)
@@ -1261,7 +1261,7 @@ end
 OmegaNum.eq = OmegaNum.equal
 
 --[[
-	Returns whether two OmegaNums are equal to each other.
+	Returns whether two OmegaNums are not equal to each other.
 ]]
 function OmegaNum.notEqual(value1, value2)
 	return OmegaNum.compare(value1, value2) ~= 0
@@ -2701,7 +2701,7 @@ end
 
 OmegaNum.hext = OmegaNum.hext
 
---Allow yielding in arrow() to prevent timeouts
+--Allow yielding in arrow to prevent timeouts
 
 local nextYieldTime = os.clock() + MaxExecTime
 
