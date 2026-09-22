@@ -2244,7 +2244,7 @@ function OmegaNum.tetr(base, height, payload)
 		if fo > 0 then
 			ro = OmegaNum.pow(tetra, ro)
 			if OmegaNum.equal(lo, ro) then
-				--fo = 0
+				fo = 0
 				break
 			end
 			lo = copy(ro)
@@ -2741,7 +2741,10 @@ function OmegaNum.arrow(base, arrows, height)
 	if OmegaNum.equal(height, 0) then return {1, {1}} end
 	if OmegaNum.equal(height, 1) then return hypey end
 	if OmegaNum.equal(height, 2) then
-		return OmegaNum.hyper(hypey, arrows - 1, hypey)
+		if OmegaNum.equal(hypey, 2) then
+			return {1, {4}} --2{arrows}2 is always equal to 4
+		end
+		return OmegaNum.arrow(hypey, OmegaNum.sub(arrows, 1), hypey)
 	end
 	--Yield if took too long to prevent timeout
 	if os.clock() >= nextYieldTime then
@@ -2787,7 +2790,7 @@ function OmegaNum.arrow(base, arrows, height)
 	if count == 100 then
 		fo = 0
 	end
-	--This bit is necessary. Otherwise, it will return wrong values
+	--Fill missing indicies with zeroes. This bit is necessary. Otherwise, it will return wrong values
 	for i = 1, arrowNum - 1 do
 		if ro[2][i] == nil then
 			ro[2][i] = 0
