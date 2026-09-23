@@ -23,7 +23,7 @@ This is intended to be used in Roblox games. Please avoid using arrow with more 
   * Puts an OmegaNum into a standard format.
 * toString
   * Converts an OmegaNum into a string in the format \[a,b,c,…\].
-  * This is preferred for DataStores as a literal "9.007199254740982e15 will be treated as "9007199254740982" due to rounding when taking the log of that number.
+  * This is preferred for DataStores as a literal "9.007199254740982e15" will be treated as "9007199254740982" due to rounding when taking the log of that number.
 * dispString
   * Converts an OmegaNum into a displayable string.
 * dispStringDecimalPlaces
