@@ -1055,8 +1055,10 @@ function OmegaNum.dispFGHJ(value, precision)
 	end
 	if value[1] == -1 then return "-" .. OmegaNum.dispFGHJ(OmegaNum.abs(value)) end
 	if OmegaNum.isNaN(value) then return "NaN" end
-	if not OmegaNum.isFinite(value) then return "Infinity" end
-	local array = value[2]
+	if OmegaNum.isInfinite(value) then return "Infinity" end
+	--Clone value into new value to try fix wrong values
+	local notey = copy(value)
+	local array = notey[2]
 	if OmegaNum.lessThan(value, 1000000000) then
 		return OmegaNum.dispStringDecimalPlaces(value, precision)
 	elseif OmegaNum.lessThan(value, "10^^" .. LetterMax) then --1e9 to 1F5
