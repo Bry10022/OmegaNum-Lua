@@ -1731,8 +1731,9 @@ function OmegaNum.pow(base, exponent)
 	end
 	if OmegaNum.equal(base, 10) then
 		if OmegaNum.greaterThan(exponent, 0) then
-			exponent[2][2] = (exponent[2][2] or 0) + 1
-			return OmegaNum.fix(exponent)
+			local exppy = copy(exponent)
+			exppy[2][2] = (exppy[2][2] or 0) + 1
+			return OmegaNum.fix(exppy)
 		else
 			return OmegaNum.toOmegaNum(10^OmegaNum.toNumber(exponent))
 		end
