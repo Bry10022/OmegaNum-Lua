@@ -3171,4 +3171,6 @@ end
 OmegaNum.hyperHeightInverse = OmegaNum.hyperLog
 OmegaNum.hyperLogarithm = OmegaNum.hyperLog
 
+--TODO: Leaderboard support
+
 return OmegaNum
