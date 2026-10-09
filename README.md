@@ -7,7 +7,6 @@ Internally, it is represented as a sign and array. Sign is either 1 or -1. Array
 This is intended to be used in Roblox games. Please avoid using arrow with more than 25 arrows where possible as it can get slow due to the complexity of hyperoperations.
 
 # Functions
-
 * fromNumber
   * Converts a primitive number to an OmegaNum.
 * toNumber
@@ -136,26 +135,55 @@ This is intended to be used in Roblox games. Please avoid using arrow with more 
 * ssqrt
   * Takes the super square root of an OmegaNum.
 * iteratedLog (or iteratedLogarithm)
-  * Takes the logartihm with an arbitrary base of an OmegaNum, repeatedly.
+  * Takes the logarithm with an arbitrary base of an OmegaNum, repeatedly.
   * May be inaccurate and slow, and could be given custom code.
 * layerAdd
   * Adds a number of layers of exponential tower of a ceratin base of a certain number at the bottom.
 * layerAdd10
   * Adds a number of layers of exponential tower of base 10 of a certain number at the bottom.
-* linearSroot
+* sroot (or superRoot)
   * Takes the super square root with an arbitrary degree of an OmegaNum.
   * Uses linear approximation.
-* slog
-  * Takes the super logarithm wth an arbitrary base of an OmegaNum.
+* slog (or slogarithm, superLog, superLogarithm)
+  * Takes the super logarithm with an arbitrary base of an OmegaNum.
+  * Uses linear approximation.
 * pent (or pentate)
   * Pentates one OmegaNum to another.
   * Uses linear approximation for non-integer heights.
+* pentRoot (or pentaRoot, pentateRoot)
+  * Takes the penta-root with an arbitrary degree of an OmegaNum.
+  * Uses linear approximation.
+* pentLog (or pentLogarithm, pentaLog, pentaLogarithm, pentateLog, pentateLogarithm)
+  * Takes the penta-logarithm with an arbitrary degree of an OmegaNum.
+  * Uses linear approximation.
 * hext (or hexate)
   * Hexates one OmegaNum to another.
   * Uses linear approximation for non-integer heights.
+* hextRoot (or hexaRoot, hexateRoot)
+  * Takes the hexa-root with an arbitrary degree of an OmegaNum.
+  * Uses linear approximation.
+* hextLog (or hextLogarithm, hexaLog, hexaLogarithm, hexateLog, hexateLogarithm)
+  * Takes the hexa-logarithm with an arbitrary degree of an OmegaNum.
+  * Uses linear approximation. 
 * arrow
   * Takes a hyperoperation with a certain number of arrows of one OmegaNum to another.
   * Uses linear approximation for non-integer heights.
 * hyper
   * Takes the n-th hyperoperation of one OmegaNum to another.
   * Uses linear approximation for non-integer heights.
+* arrowRoot (or arrowBaseInverse)
+  * Takes a hyper-root with a certain number of arrows, with an arbitrary degree of an OmegaNum.
+  * Uses linear approximation.
+* hyperRoot (or hyperBaseInverse)
+  * Takes a hyper-root corresponding to the n-th hyperoperation, with an arbitrary degree of an OmegaNum.
+  * Uses linear approximation.
+* arrowLog (or arrowHeightInverse, arrowLogarithm)
+  * Takes a hyper-logarithm with a certain number of arrows, with an arbitrary degree of an OmegaNum.
+  * Uses linear approximation.
+* hyperLog (or hyperHeightInverse, hyperLogarithm)
+  * Takes the n-th hyper-logarithm with an arbitrary degree of an OmegaNum.
+  * Uses linear approximation.
+
+# Known issues
+* Inaccurate results for arrowRoot() for radicands with arrow counts (when explicitly written as 10{number of arrows}number) smaller than arrows parameter.
+  * Example: OmegaNum.arrowRoot("10^^^200", 4, 10) gives 1.7756425698641163, while the JavaScript version gives 1.7752501143128274
