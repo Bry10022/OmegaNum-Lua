@@ -20,7 +20,7 @@ Credits:
 How to use:
 1. Place this ModuleScript in the game's ReplicatedStorage
 2. In scripts that want to use it, type local OmegaNum = require(game.ReplicatedStorage.OmegaNum)
-3. You can create a new OmegaNum by using the function OmegaNum.toOmega(number/string/table)
+3. You can create a new OmegaNum by using the function OmegaNum.toOmegaNum(number/string/table)
 3.1 You do not need the quotation marks for values smaller then 1e308, but for larger values, they are required. Otherwise, it will become Infinity.
 3.2 You can also do this by setting the value to {-1 or 1, {num1, num2, num3, …}}
 4. Use one of the methods below to perform a function on the number as necessary.
@@ -550,8 +550,8 @@ function OmegaNum.fix(value)
 			while not value[2][i] or value[2][i] == 0 do
 				i = i + 1
 			end
-			value[2][i-1] = value[2][1]
-			value[2][1] = 1
+			value[2][i-1] = math.floor(value[2][1])
+			value[2][1] = 10^(value[2][1] - math.floor(value[2][1]))
 			value[2][i] = value[2][i] - 1
 			b = true
 		end
@@ -882,7 +882,7 @@ end
 
 --[[
 	Converts an OmegaNum into a displayable string ending with a suffix.
-	This only supports suffixes up to the multillions (slightly less thsn eee3e45).
+	This only supports suffixes up to the multillions (slightly less than eee3e45).
 ]]
 function OmegaNum.toSuffix(value, precision, enableThousands)
 	--Default parameters
@@ -1337,12 +1337,18 @@ function OmegaNum.equalTolerance(value1, value2, tolerance)
 	end
 	local a, b
 	local max_len = math.max(#value1[2], #value2[2])
-	for i = max_len, 2, -1 do
+	for i = max_len, 1, -1 do
 		local e = value1[2][i] or 0
 		local f = value2[2][i] or 0
+		if i == 1 then
+			a = e
+			b = f
+			break
+		end
 		if math.abs(e - f) > 1 then
 			return false
-		elseif e ~= f then
+		end
+		if e ~= f then
 			local x, y
 			if e > f then
 				x, y = value1, value2
@@ -1368,9 +1374,6 @@ function OmegaNum.equalTolerance(value1, value2, tolerance)
 				b = math.log10(y[2][i-1] or 0)
 			end
 			break
-		elseif i == 2 then
-			a = value1[2][1]
-			b = value2[2][1]
 		end
 	end
 	if a == nil or b == nil then
@@ -1821,6 +1824,7 @@ end
 ]]
 function OmegaNum.log10(argument)
 	argument = OmegaNum.fix(argument)
+	--Clone argument into new value
 	local arggy = copy(argument)
 	--Handle special cases
 	if OmegaNum.lessThan(arggy, 0) then
@@ -1851,7 +1855,7 @@ OmegaNum.generalLogarithm = OmegaNum.log10
 ]]
 function OmegaNum.logBase(argument, base)
 	if base == nil then
-		base = 2.718281828459045
+		base = {1, {2.718281828459045}}
 	end
 	base = OmegaNum.fix(base)
 	return OmegaNum.div(OmegaNum.log10(argument), OmegaNum.log10(base))
@@ -2112,7 +2116,9 @@ end
 ]]
 function OmegaNum.lambertw(value, principal)
 	--Default parameters
-	if principal == nil then principal = true end
+	if principal == nil then
+		principal = true
+	end
 	value = OmegaNum.fix(value)
 	--Clone value into new value
 	local lamby = OmegaNum.copy(value)
@@ -2159,7 +2165,7 @@ end
 function OmegaNum.tetr(base, height, payload)
 	--Default parameters
 	if payload == nil then
-		payload = 1
+		payload = {1, {1}}
 	end
 	base = OmegaNum.fix(base)
 	height = OmegaNum.fix(height)
@@ -2250,7 +2256,7 @@ function OmegaNum.tetr(base, height, payload)
 				fo = 0
 				break
 			end
-			lo = copy(ro)
+			lo = ro
 			fo = fo - 1
 		else
 			ro = OmegaNum.logBase(ro, tetra)
@@ -2280,6 +2286,7 @@ OmegaNum.iteratedExponential = OmegaNum.tetr
 ]]
 function OmegaNum.ssqrt(radicand)
 	radicand = OmegaNum.fix(radicand)
+	--Clone radicand into new value
 	local rooty = copy(radicand)
 	--Handle special cases
 	if OmegaNum.lessThan(rooty, 0.6922006275553464) then
@@ -2299,17 +2306,20 @@ function OmegaNum.ssqrt(radicand)
 	return OmegaNum.div(l, OmegaNum.lambertw(l))
 end
 
+OmegaNum.superSqrt = OmegaNum.ssqrt
+OmegaNum.superSquareRoot = OmegaNum.ssqrt
+
 --[[
-	Takes the logartihm with an arbitrary base of an OmegaNum, repeatedly.
+	Takes the logarithm with an arbitrary base of an OmegaNum, repeatedly.
 	May be inaccurate and slow, and could be given custom code.
 ]]
 function OmegaNum.iteratedLog(argument, base, payload)
 	--Default parameters
 	if base == nil then
-		base = 10
+		base = {1, {10}}
 	end
 	if payload == nil then
-		payload = 1
+		payload = {1, {1}}
 	end
 	argument = OmegaNum.fix(argument)
 	base = OmegaNum.fix(base)
@@ -2332,10 +2342,10 @@ OmegaNum.iteratedLogarithm = OmegaNum.iteratedLog
 function OmegaNum.layerAdd(value, height, base)
 	--Default parameters
 	if height == nil then
-		height = 1
+		height = {1, {1}}
 	end
 	if base == nil then
-		base = 10
+		base = {1, {10}}
 	end
 	value = OmegaNum.fix(value)
 	height = OmegaNum.fix(height)
@@ -2354,55 +2364,64 @@ end
 	Takes the super square root with an arbitrary degree of an OmegaNum.
 	Uses linear approximation.
 ]]
-function OmegaNum.linearSroot(radicand, index)
+function OmegaNum.sroot(radicand, index)
 	radicand = OmegaNum.fix(radicand)
 	index = OmegaNum.fix(index)
+	--Clone radicand into new value
+	local sroty = copy(radicand)
 	--Handle special cases
 	if OmegaNum.isNaN(index) then
 		return {1, {math.nan}}
 	end
 	local indexNum = OmegaNum.toNumber(index)
 	if indexNum == 1 then
-		return radicand
+		return sroty
 	end
-	if OmegaNum.equal(radicand, math.huge) then
+	if OmegaNum.equal(sroty, math.huge) then
 		return {1, {math.huge}}
 	end
-	if not OmegaNum.isFinite(radicand) then
+	if not OmegaNum.isFinite(sroty) then
 		return {1, {math.nan}}
 	end
 	if indexNum > 0 and indexNum < 1 then
-		return OmegaNum.root(radicand, indexNum)
+		return OmegaNum.root(sroty, index)
 	end
 	if indexNum > -2 and indexNum < -1 then
-		return OmegaNum.pow(OmegaNum.add(index, 2), OmegaNum.rec(radicand))
+		return OmegaNum.pow(OmegaNum.add(index, 2), OmegaNum.rec(sroty))
 	end
 	if indexNum <= 0 then
 		return {1, {math.nan}}
 	end
 	if OmegaNum.greaterThan(index, MaxInteger) then
-		local radicandNum = OmegaNum.toNumber(radicand)
+		local radicandNum = OmegaNum.toNumber(sroty)
 		if radicandNum < 2.718281828459045 and radicandNum > 0.3678794411710499 then
-			return OmegaNum.pow(radicand, OmegaNum.rec(radicand))
+			return OmegaNum.pow(sroty, OmegaNum.rec(sroty))
 		end
-		if OmegaNum.greaterThan(radicand, TetratedMaxInteger) then
-			return OmegaNum.tetr(10, OmegaNum.sub(OmegaNum.slog(radicand, 10), index))
+		if OmegaNum.greaterThan(sroty, TetratedMaxInteger) then
+			local nn = OmegaNum.sub(OmegaNum.slog(sroty, 10), index)
+			if OmegaNum.lessThanEqual(nn, 0) then
+				return {1, {1.444667861009766}}
+			end 
+			return OmegaNum.tetr(10, nn)
 		end
 		return {1, {math.nan}}
 	end
-	if OmegaNum.equal(radicand, 1) then
+	if OmegaNum.equal(sroty, 1) then
 		return {1, {1}}
 	end
-	if OmegaNum.lessThan(radicand, 0) then
+	if OmegaNum.lessThan(sroty, 0) then
 		return {1, {math.nan}}
 	end
-	--Calcaulate
-	if OmegaNum.greaterThan(radicand, 1) then
+	if OmegaNum.equal(sroty, 0) then
+		return {1, {0}}
+	end
+	--Calcaulate super-root
+	if OmegaNum.greaterThan(sroty, 1) then
 		local upperBound
 		if indexNum <= 1 then
-			upperBound = OmegaNum.root(radicand, index)
-		elseif OmegaNum.greaterThanEqual(radicand, OmegaNum.tetr(10, index)) then
-			upperBound = OmegaNum.iteratedLog(radicand, 10, indexNum - 1)
+			upperBound = OmegaNum.root(sroty, index)
+		elseif OmegaNum.greaterThanEqual(sroty, OmegaNum.tetr(10, index)) then
+			upperBound = OmegaNum.iteratedLog(sroty, 10, indexNum - 1)
 		else
 			upperBound = {1, {10}} --The table format is necessary to prevent error
 		end
@@ -2411,7 +2430,7 @@ function OmegaNum.linearSroot(radicand, index)
 		local upper = OmegaNum.iteratedLog(upperBound, 10, layer)
 		local guess = OmegaNum.div(upper, 2)
 		while true do
-			if OmegaNum.greaterThan(OmegaNum.tetr(OmegaNum.tetr(10, layer, guess), index), radicand) then
+			if OmegaNum.greaterThan(OmegaNum.tetr(OmegaNum.tetr(10, layer, guess), index), sroty) then
 				upper = guess
 			else
 				lower = guess
@@ -2480,22 +2499,16 @@ function OmegaNum.linearSroot(radicand, index)
 					prevPoint = OmegaNum.rec(OmegaNum.pow(10, OmegaNum.add(upper, prevspan)))
 					distance = OmegaNum.sub(upperBound, prevPoint)
 					nextPoint = OmegaNum.add(upperBound, distance)
-					local ubtd
+					local ubtd = OmegaNum.tetr(upperBound, index)
 					local pptd
 					local nptd
-					pptd = OmegaNum.tetr(previousUpper, index)
-					ubtd = OmegaNum.tetr(upperBound, index)
-					nptd = OmegaNum.tetr(nextPoint, index)
-					while OmegaNum.equal(pptd, ubtd) or OmegaNum.equal(nptd, ubtd) do
-						prevspan = OmegaNum.mul(upper, 2)
+					while OmegaNum.greaterThanEqual(prevPoint, upperBound) or OmegaNum.lessThanEqual(nextPoint, upperBound) or (function() pptd = OmegaNum.tetr(prevPoint, index); return OmegaNum.equal(pptd, ubtd) end)() or (function() nptd = OmegaNum.tetr(nextPoint, index); return OmegaNum.equal(nptd, ubtd) end)() do
+						prevspan = OmegaNum.mul(prevspan, 2)
 						prevPoint = OmegaNum.rec(OmegaNum.pow(10, OmegaNum.add(upper, prevspan)))
 						distance = OmegaNum.sub(upperBound, prevPoint)
 						nextPoint = OmegaNum.add(upperBound, distance)
-						pptd = OmegaNum.tetr(previousUpper, index)
-						ubtd = OmegaNum.tetr(upperBound, index)
-						nptd = OmegaNum.tetr(nextPoint, index)
 					end
-					if (stage == 1 and OmegaNum.greaterThan(nptd, ubtd)) or (stage == 2 and OmegaNum.lessThan(nptd, ubtd)) then
+					if (stage == 1 and OmegaNum.greaterThan(nptd, ubtd) and OmegaNum.greaterThan(pptd, ubtd)) or (stage == 3 and OmegaNum.lessThan(nptd, ubtd) and OmegaNum.lessThan(pptd, ubtd)) then
 						lastValid = upper
 					end
 					if OmegaNum.lessThan(nptd, ubtd) then 
@@ -2505,17 +2518,11 @@ function OmegaNum.linearSroot(radicand, index)
 					elseif stage == 3 and OmegaNum.greaterThanTolerance(upper, minimum, 1e-8) then
 						range = 0
 					else
-						pptd = OmegaNum.tetr(previousUpper, index)
-						ubtd = OmegaNum.tetr(upperBound, index)
-						nptd = OmegaNum.tetr(nextPoint, index)
-						while OmegaNum.greaterThanEqual(prevPoint, upperBound) or OmegaNum.lessThanEqual(nextPoint, upperBound) or OmegaNum.equalTolerance(pptd, ubtd, 1e-8) or OmegaNum.equalTolerance(nptd, ubtd, 1e-8) do
+						while OmegaNum.greaterThanEqual(prevPoint, upperBound) or OmegaNum.lessThanEqual(nextPoint, upperBound) or (function() pptd = OmegaNum.tetr(prevPoint, index); return OmegaNum.equalTolerance(pptd, ubtd, 1e-8) end)() or (function() nptd = OmegaNum.tetr(nextPoint, index); return OmegaNum.equalTolerance(nptd, ubtd, 1e-8) end)() do
 							prevspan = OmegaNum.mul(upper, 2)
 							prevPoint = OmegaNum.rec(OmegaNum.pow(10, OmegaNum.add(upper, prevspan)))
 							distance = OmegaNum.sub(upperBound, prevPoint)
 							nextPoint = OmegaNum.add(upperBound, distance)
-							pptd = OmegaNum.tetr(previousUpper, index)
-							ubtd = OmegaNum.tetr(upperBound, index)
-							nptd = OmegaNum.tetr(nextPoint, index)
 						end
 						if OmegaNum.lessThan(OmegaNum.sub(nptd, ubtd), OmegaNum.sub(ubtd, pptd)) then
 							range = 0
@@ -2594,7 +2601,7 @@ function OmegaNum.linearSroot(radicand, index)
 				else
 					guess = OmegaNum.div(OmegaNum.add(lower, upper), 2)
 				end
-				if OmegaNum.greaterThan(OmegaNum.tetr(OmegaNum.rec(OmegaNum.pow(10, guess)), index), radicand) then
+				if OmegaNum.greaterThan(OmegaNum.tetr(OmegaNum.rec(OmegaNum.pow(10, guess)), index), sroty) then
 					upper = guess
 				else
 					lower = guess
@@ -2613,8 +2620,11 @@ function OmegaNum.linearSroot(radicand, index)
 	end
 end
 
+OmegaNum.superRoot = OmegaNum.sroot
+
 --[[
-	Takes the super logarithm wth an arbitrary base of an OmegaNum.
+	Takes the super logarithm with an arbitrary base of an OmegaNum.
+	Uses linear approximation.
 ]]
 function OmegaNum.slog(argument, base)
 	--Default parameters
@@ -2623,86 +2633,141 @@ function OmegaNum.slog(argument, base)
 	end
 	argument = OmegaNum.fix(argument)
 	base = OmegaNum.fix(base)
+	--Clone argument into new value
 	local slogy = copy(argument)
 	--Handle special cases
-	if OmegaNum.isNaN(argument) or OmegaNum.isNaN(base) or (OmegaNum.isInfinite(slogy) and OmegaNum.isInfinite(base)) then
+	if OmegaNum.isNaN(slogy) or OmegaNum.isNaN(base) or (OmegaNum.isInfinite(slogy) and OmegaNum.isInfinite(base)) then
 		return {1, {math.nan}}
 	end
-	if OmegaNum.isInfinite(argument) then
-		return argument
+	if OmegaNum.isInfinite(slogy) then
+		return slogy
 	end
 	if OmegaNum.isInfinite(base) then
 		return {1, {0}}
 	end
-	if OmegaNum.lessThan(argument, 0) then
+	if OmegaNum.lessThan(slogy, 0) then
 		return {-1, {1}}
 	end
-	if OmegaNum.equal(argument, 1) then
+	if OmegaNum.equal(slogy, 1) then
 		return {1, {0}}
 	end
-	if OmegaNum.equal(argument, base) then
+	if OmegaNum.equal(slogy, base) then
 		return {1, {1}}
 	end
-	--Calculate
+	--Calculate super-logarithm
 	if OmegaNum.lessThan(base, 1.444667861009766) then
 		local a = OmegaNum.tetr(base, math.huge)
-		if OmegaNum.equal(argument, a) then return {1, {math.huge}} end
-		if OmegaNum.greaterThan(argument, a) then return {1, {math.nan}} end
+		if OmegaNum.equal(slogy, a) then return {1, {math.huge}} end
+		if OmegaNum.greaterThan(slogy, a) then return {1, {math.nan}} end
 	end
-	if OmegaNum.greaterThan(OmegaNum.maximum(argument, base), PentatedMaxInteger) then
-		if OmegaNum.greaterThan(argument, base) then
-			return argument
+	if OmegaNum.greaterThan(OmegaNum.maximum(slogy, base), PentatedMaxInteger) then
+		if OmegaNum.greaterThan(slogy, base) then
+			return slogy
 		end
 		return {1, {0}}
 	end
-	if OmegaNum.greaterThan(OmegaNum.maximum(argument, base), TetratedMaxInteger) then
-		if OmegaNum.greaterThan(argument, base) then
-			argument[2][3] = (argument[2][3] or 0) - 1
-			argument = OmegaNum.fix(argument)
-			return OmegaNum.sub(argument, argument[2][2])
+	if OmegaNum.greaterThan(OmegaNum.maximum(slogy, base), TetratedMaxInteger) then
+		if OmegaNum.greaterThan(slogy, base) then
+			slogy[2][3] = (slogy[2][3] or 0) - 1
+			slogy = OmegaNum.fix(slogy)
+			return OmegaNum.sub(slogy, slogy[2][2])
 		end
 		return {1, {0}}
+	end
+	if OmegaNum.lessThan(slogy, 0) then
+		return OmegaNum.sub(OmegaNum.pow(base, slogy), 2)
 	end
 	local ro = 0
-	local t = (argument[2][2] or 0) - (base[2][2] or 0)
+	local t = (slogy[2][2] or 0) - (base[2][2] or 0)
 	if t > 3 then
 		local l = t - 3
 		ro = ro + l
-		argument[2][2] = (argument[2][2] or 0) - l
+		slogy[2][2] = (slogy[2][2] or 0) - l
 	end
 	for i = 1, 100 do
-		if OmegaNum.lessThan(argument, 0) then
-			argument = OmegaNum.pow(base, argument)
-			ro = ro - 1
-		elseif OmegaNum.lessThanEqual(argument, 1) then
-			return OmegaNum.fix(ro + OmegaNum.toNumber(argument) - 1)
-		else
-			ro = ro + 1
-			argument = OmegaNum.logBase(argument, base)
+		if OmegaNum.lessThanEqual(slogy, 1) then
+			return OmegaNum.fix(ro + OmegaNum.toNumber(slogy) - 1)
 		end
+		ro = ro + 1
+		slogy = OmegaNum.logBase(slogy, base)
 	end
-	if OmegaNum.greaterThan(argument, 10) then return OmegaNum.fix(ro) end
+	--Failure state
+	return {1, {math.nan}}
 end
+
+OmegaNum.slogarithm = OmegaNum.slog
+OmegaNum.superLog = OmegaNum.slog
+OmegaNum.superLogarithm = OmegaNum.slog
 
 --[[
 	Pentates one OmegaNum to another.
 	Uses linear approximation for non-integer heights.
 ]]
-function OmegaNum.pent(base, height)
-	return OmegaNum.arrow(base, 3, height)
+function OmegaNum.pent(base, height, payload)
+	return OmegaNum.arrow(base, 3, height, payload)
 end
 
 OmegaNum.pentate = OmegaNum.pent
 
 --[[
+	Takes the penta-root with an arbitrary degree of an OmegaNum.
+	Uses linear approximation.
+]]
+function OmegaNum.pentRoot(radicand, index)
+	return OmegaNum.arrowRoot(radicand, 3, index)
+end
+
+OmegaNum.pentaRoot = OmegaNum.pentRoot
+OmegaNum.pentateRoot = OmegaNum.pentRoot
+
+--[[
+	Takes the penta-logarithm with an arbitrary degree of an OmegaNum.
+	Uses linear approximation.
+]]
+function OmegaNum.pentLog(argument, base)
+	return OmegaNum.arrowLog(argument, 3, base)
+end
+
+OmegaNum.pentLogarithm = OmegaNum.pentLog
+OmegaNum.pentaLog = OmegaNum.pentLog
+OmegaNum.pentaLogarithm = OmegaNum.pentLog
+OmegaNum.pentateLog = OmegaNum.pentLog
+OmegaNum.pentateLogarithm = OmegaNum.pentLog
+
+--[[
 	Hexates one OmegaNum to another.
 	Uses linear approximation for non-integer heights.
 ]]
-function OmegaNum.hext(base, height)
-	return OmegaNum.arrow(base, 4, height)
+function OmegaNum.hext(base, height, payload)
+	return OmegaNum.arrow(base, 4, height, payload)
 end
 
-OmegaNum.hext = OmegaNum.hext
+OmegaNum.hexate = OmegaNum.hext
+
+--[[
+	Takes the hexa-root with an arbitrary degree of an OmegaNum.
+	Uses linear approximation.
+]]
+function OmegaNum.hextRoot(radicand, index)
+	return OmegaNum.arrowRoot(radicand, 4, index)
+end
+
+OmegaNum.hexaRoot = OmegaNum.hextRoot
+OmegaNum.hexateRoot = OmegaNum.hextRoot
+
+--[[
+	Takes the hexa-logarithm with an arbitrary degree of an OmegaNum.
+	Uses linear approximation.
+]]
+function OmegaNum.hextLog(argument, base)
+	return OmegaNum.arrowLog(argument, 4, base)
+end
+
+OmegaNum.hextLogarithm = OmegaNum.hextLog
+OmegaNum.hexaLog = OmegaNum.hextLog
+OmegaNum.hexaLogarithm = OmegaNum.hextLog
+OmegaNum.hexateLog = OmegaNum.hextLog
+OmegaNum.hexateLogarithm = OmegaNum.hextLog
 
 --Allow yielding in arrow to prevent timeouts
 
@@ -2712,12 +2777,20 @@ local nextYieldTime = os.clock() + MaxExecTime
 	Takes a hyperoperation with a certain number of arrows of one OmegaNum to another.
 	Uses linear approximation for non-integer heights.
 ]]
-function OmegaNum.arrow(base, arrows, height)
+function OmegaNum.arrow(base, arrows, height, payload)
+	--Default parameters
+	if payload == nil then
+		payload = {1, {1}}
+	end
 	base = OmegaNum.fix(base)
 	arrows = OmegaNum.fix(arrows)
 	height = OmegaNum.fix(height)
+	payload = OmegaNum.fix(payload)
 	--Clone base into new value
 	local hypey = copy(base)
+	if OmegaNum.notEqual(payload, 1) then
+		height = OmegaNum.add(height, OmegaNum.arrowLog(payload))
+	end
 	--Handle special cases
 	if not OmegaNum.isInteger(arrows) and OmegaNum.lessThan(arrows, -2) then
 		warn(InvalidArgument .. "Non-integer number of arrows specified and negative hyperoperations are undefined.")
@@ -2732,7 +2805,7 @@ function OmegaNum.arrow(base, arrows, height)
 		return {1, {math.nan}}
 	end
 	if OmegaNum.greaterThan(arrows, MaxArrow) then
-		warn("Number too large to reasonably handle. Tried to " .. OmegaNum.add(arrows, 2) .. "-ate.")
+		warn("Number too large to reasonably handle. Tried to " .. OmegaNum.dispString(OmegaNum.add(arrows, 2)) .. "-ate.")
 		return {1, {math.huge}}
 	end
 	if OmegaNum.equal(arrows, -2) then return OmegaNum.add(hypey, 1) end
@@ -2779,13 +2852,27 @@ function OmegaNum.arrow(base, arrows, height)
 	local fo = math.floor(yo)
 	local arrowm1 = OmegaNum.sub(arrows, 1)
 	ro = OmegaNum.arrow(hypey, arrowm1, (yo - fo))
-	local count = 0
 	local mo = "10{" .. arrowNum - 1 .. "}" .. MaxInteger
+	local lo = math.nan
+	local count = 0
 	for i = 1, 100 do
 		if not (fo ~= 0 and OmegaNum.lessThan(ro, mo)) then break end
 		if fo > 0 then
 			ro = OmegaNum.arrow(hypey, arrowm1, ro)
+			if OmegaNum.equal(lo, ro) then
+				fo = 0
+				break
+			end
+			lo = ro
 			fo = fo - 1
+		else
+			ro = OmegaNum.arrowLog(ro, arrowm1, hypey)
+			if OmegaNum.equal(lo, ro) then
+				fo = 0
+				break
+			end
+			lo = ro
+			fo = fo + 1
 		end
 		count = count + 1
 	end
@@ -2808,10 +2895,279 @@ end
 	Takes the n-th hyperoperation of one OmegaNum to another.
 	Uses linear approximation for non-integer heights.
 ]]
-function OmegaNum.hyper(hyperoperation, base, height)
-	return OmegaNum.arrow(base, OmegaNum.add(hyperoperation, 2), height)
+function OmegaNum.hyper(hyperoperation, base, height, payload)
+	return OmegaNum.arrow(base, OmegaNum.sub(hyperoperation, 2), height, payload)
 end
 
---TODO: Hyper-roots, leaderboard support
+--[[
+	Takes a hyper-root with a certain number of arrows, with an arbitrary degree of an OmegaNum.
+	Uses linear approximation.
+]]
+function OmegaNum.arrowRoot(radicand, arrows, index)
+	radicand = OmegaNum.fix(radicand)
+	arrows = OmegaNum.fix(arrows)
+	index = OmegaNum.fix(index)
+	--Clone radicand into new value
+	local aroty = copy(radicand)
+	--Handle special cases
+	if not OmegaNum.isInteger(arrows) and OmegaNum.lessThan(arrows, -2) then
+		warn(InvalidArgument .. "Non-integer number of arrows specified and negative hyperoperations are undefined.")
+		return {1, {math.nan}}
+	end
+	if not OmegaNum.isInteger(arrows) then
+		warn(InvalidArgument .. "Non-integer number of arrows specified.")
+		return {1, {math.nan}}
+	end
+	if OmegaNum.lessThan(arrows, -2) then
+		warn(InvalidArgument .. "Negative hyperoperations are undefined.")
+		return {1, {math.nan}}
+	end
+	if OmegaNum.equal(arrows, -2) then return OmegaNum.sub(aroty, 1) end
+	if OmegaNum.equal(arrows, -1) then return OmegaNum.sub(aroty, index) end
+	if OmegaNum.equal(arrows, 0) then return OmegaNum.div(aroty, index) end
+	if OmegaNum.equal(arrows, 1) then return OmegaNum.root(aroty, index) end
+	if OmegaNum.equal(arrows, 2) then return OmegaNum.sroot(aroty, index) end
+	if OmegaNum.isNaN(aroty) or OmegaNum.isNaN(index) or (OmegaNum.isInfinite(aroty) and OmegaNum.isInfinite(index)) then
+		return {1, {math.nan}}
+	end
+	local indexNum = OmegaNum.toNumber(index)
+	if indexNum == 1 then
+		return aroty
+	end
+	if OmegaNum.equal(aroty, math.huge) then
+		return {1, {math.huge}}
+	end
+	if indexNum > 0 and indexNum < 1 then
+		return OmegaNum.root(aroty, index)
+	end
+	if indexNum <= 0 then
+		return {1, {math.nan}}
+	end
+	if not OmegaNum.isFinite(aroty) then
+		return {1, {math.nan}}
+	end
+	if OmegaNum.isInfinite(aroty) then
+		return aroty
+	end
+	if OmegaNum.equal(aroty, 1) then
+		return {1, {1}}
+	end
+	if OmegaNum.lessThan(aroty, 0) then
+		return {1, {math.nan}}
+	end
+	if OmegaNum.lessThan(aroty, 1) then
+		return OmegaNum.sroot(aroty, index)
+	end
+	--Calculate hyper-root
+	local arrowNum = OmegaNum.toNumber(arrows)
+	if OmegaNum.greaterThan(index, MaxInteger) then
+		if OmegaNum.graterThan(aroty, "10{" .. arrowNum .. "}" .. MaxInteger) then
+			return OmegaNum.arrow(10, arrows, OmegaNum.sub(OmegaNum.arrowLog(aroty, arrows, 10), index))
+		end
+		return {1, {math.nan}}
+	end
+	if OmegaNum.greaterThan(OmegaNum.max(aroty, index), "10{" .. arrowNum + 1 .. "}" .. MaxInteger) then
+		if OmegaNum.greaterThan(aroty, index) then
+			return aroty
+		end
+		return {1, {0}}
+	end
+	if OmegaNum.lessThanEqual(OmegaNum.arrow(aroty, arrows, index), aroty) then
+		return aroty
+	end
+	local mina = {1}
+	local maxa = table.clone(aroty[2])
+	while true do
+		if #maxa >= 2 and maxa[1] <= MaxE then
+			maxa[1] = MaxInteger + 1
+			maxa[2] = maxa[2] - 1
+			if maxa[2] == 0 then
+				local i = 2
+				if #maxa > 2 then
+					while maxa[i] == 0 do 
+						maxa[i] = MaxInteger 
+						i = i + 1
+					end
+					maxa[i] = maxa[i] - 1
+				end
+				if maxa[i] == 0 and i == #maxa then 
+					table.remove(maxa) 
+				end
+			end
+		end
+		local mida
+		if #mina > #maxa then break end
+		if #mina < #maxa then
+			mida = table.create(math.ceil((#mina + #maxa) / 2), 0)
+			mida[1] = MaxE
+			mida[2] = 1
+			mida[#mida] = 1
+		else
+			local i = #maxa
+			while i >= 1 and mina[i] == maxa[i] do
+				i = i - 1
+			end
+			if i < 1 or mina[i] > maxa[i] then break end
+			local mide
+			if i > 1 then 
+				mide = math.floor((mina[i] + maxa[i]) / 2)
+			else
+				mide = (mina[i] + maxa[i]) / 2
+				if mide == mina[i] or mide == maxa[i] then break end
+			end
+			mida = table.clone(maxa)
+			mida[i] = mide
+		end
+		local mid = OmegaNum.fix(mida)
+		if OmegaNum.lessThanEqual(OmegaNum.arrow(mid, arrows, index), aroty) then 
+			mina = mid[2]
+		else 
+			maxa = mida
+		end
+	end
+	return OmegaNum.fix(mina)
+end
+
+OmegaNum.arrowBaseInverse = OmegaNum.arrowRoot
+
+--[[
+	Takes the n-th hyper-root with an arbitrary degree of an OmegaNum.
+	Uses linear approximation.
+]]
+function OmegaNum.hyperRoot(hyperoperation, radicand, index)
+	return OmegaNum.arrowRoot(radicand, OmegaNum.sub(hyperoperation, 2), index)
+end
+
+OmegaNum.hyperBaseInverse = OmegaNum.hyperRoot
+
+--[[
+	Takes a hyper-logarithm with a certain number of arrows, with an arbitrary degree of an OmegaNum.
+	Uses linear approximation.
+]]
+function OmegaNum.arrowLog(argument, arrows, base)
+	--Default parameters
+	if base == nil then
+		base = {1, {10}}
+	end
+	argument = OmegaNum.fix(argument)
+	arrows = OmegaNum.fix(arrows)
+	base = OmegaNum.fix(base)
+	--Clone argument into new value
+	local alogy = copy(argument)
+	--Handle special cases
+	if not OmegaNum.isInteger(arrows) and OmegaNum.lessThan(arrows, -2) then
+		warn(InvalidArgument .. "Non-integer number of arrows specified and negative hyperoperations are undefined.")
+		return {1, {math.nan}}
+	end
+	if not OmegaNum.isInteger(arrows) then
+		warn(InvalidArgument .. "Non-integer number of arrows specified.")
+		return {1, {math.nan}}
+	end
+	if OmegaNum.lessThan(arrows, -2) then
+		warn(InvalidArgument .. "Negative hyperoperations are undefined.")
+		return {1, {math.nan}}
+	end
+	if OmegaNum.equal(arrows, -2) then return OmegaNum.sub(alogy, 1) end
+	if OmegaNum.equal(arrows, -1) then return OmegaNum.sub(alogy, base) end
+	if OmegaNum.equal(arrows, 0) then return OmegaNum.div(alogy, base) end
+	if OmegaNum.equal(arrows, 1) then return OmegaNum.logBase(alogy, base) end
+	if OmegaNum.equal(arrows, 2) then return OmegaNum.slog(alogy, base) end
+	if OmegaNum.isNaN(alogy) or OmegaNum.isNaN(base) or (OmegaNum.isInfinite(alogy) and OmegaNum.isInfinite(base)) then
+		return {1, {math.nan}}
+	end
+	if OmegaNum.lessThanEqual(base, 1) then
+		return {1, {math.nan}}
+	end
+	if OmegaNum.isInfinite(alogy) then
+		return alogy
+	end
+	if OmegaNum.isInfinite(base) then
+		return {1, {0}}
+	end
+	if OmegaNum.equal(alogy, 0) then
+		return {-1, {1}}
+	end
+	if OmegaNum.equal(alogy, 1) then
+		return {1, {0}}
+	end
+	if OmegaNum.equal(alogy, base) then
+		return {1, {1}}
+	end
+	--Calculate hyper-logarithm
+	local arrowNum = OmegaNum.toNumber(arrows)
+	local max = OmegaNum.maximum(alogy, base)
+	if OmegaNum.greaterThan(max, "10{" .. arrowNum + 1 .. "}" .. MaxInteger) then
+		if OmegaNum.greaterThan(alogy, base) then
+			return alogy
+		end
+		return {1, {0}}
+	end
+	if OmegaNum.greaterThan(max, "10{" .. arrowNum .. "}" .. MaxInteger) then
+		if OmegaNum.greaterThan(alogy, base) then
+			alogy[2][arrowNum+1] = (alogy[2][arrowNum+1] or 0) - 1
+			alogy = OmegaNum.fix(alogy)
+			return OmegaNum.sub(alogy, alogy[2][arrowNum])
+		end
+		return {1, {0}}
+	end
+	if OmegaNum.greaterThan(alogy, 1) then
+		local ro = 0
+		local t = (alogy[2][arrowNum] or 0) - (base[2][arrowNum] or 0)
+		if t > 3 then
+			local l = t - 3
+			ro = ro + l
+			alogy[2][arrowNum] = (alogy[2][arrowNum] or 0) - l
+		end
+		local arrowm1 = OmegaNum.sub(arrows, 1)
+		for i = 1, 100 do
+			if OmegaNum.lessThanEqual(alogy, 1) then
+				return OmegaNum.fix(ro + OmegaNum.toNumber(alogy) - 1)
+			else
+				ro = ro + 1
+				alogy = OmegaNum.arrowLog(alogy, arrowm1, base)
+			end
+		end
+		--Failure state
+		return {1, {math.nan}}
+	else
+		local ro = 0
+		local yo = {1, {1}}
+		while OmegaNum.greaterThan(yo, alogy) do
+			ro = ro - 1
+			yo = OmegaNum.slog(yo, base)
+			if ro < -100 then
+				--No solution to too close to fixed point
+				return {1, {math.nan}}
+			end
+		end
+		local so = 1
+		local count = 0
+		for i = 1, 100 do
+			if ro == ro + so then break end
+			local wo = OmegaNum.arrow(base, arrows, ro + so)
+			if not OmegaNum.greaterThan(wo, alogy) then
+				ro = ro + so
+				if OmegaNum.equal(wo, alogy) then break end
+			end
+			so = so / 2
+			count = count + 1
+		end
+		return OmegaNum.fix(ro)
+	end
+end
+
+OmegaNum.arrowHeightInverse = OmegaNum.arrowLog
+OmegaNum.arrowLogarithm = OmegaNum.arrowLog
+
+--[[
+	Takes the n-th hyper-logarithm with an arbitrary degree of an OmegaNum.
+	Uses linear approximation.
+]]
+function OmegaNum.hyperLog(hyperoperation, argument, base)
+	return OmegaNum.arrowLog(argument, OmegaNum.sub(hyperoperation, 2), base)
+end
+
+OmegaNum.hyperHeightInverse = OmegaNum.hyperLog
+OmegaNum.hyperLogarithm = OmegaNum.hyperLog
 
 return OmegaNum
