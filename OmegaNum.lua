@@ -3011,6 +3011,7 @@ function OmegaNum.arrowRoot(radicand, arrows, index)
 			local mide
 			if i > 1 then 
 				mide = math.floor((mina[i] + maxa[i]) / 2)
+				if mide == mina[i] or mide == maxa[i] then break end
 			else
 				mide = (mina[i] + maxa[i]) / 2
 				if mide == mina[i] or mide == maxa[i] then break end
