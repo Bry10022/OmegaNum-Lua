@@ -175,7 +175,7 @@ This is intended to be used in Roblox games. Please avoid using arrow with more 
   * Takes a hyper-root with a certain number of arrows, with an arbitrary degree of an OmegaNum.
   * Uses linear approximation.
 * hyperRoot (or hyperBaseInverse)
-  * Takes a hyper-root corresponding to the n-th hyperoperation, with an arbitrary degree of an OmegaNum.
+  * Takes n-th hyper-root with an arbitrary degree of an OmegaNum.
   * Uses linear approximation.
 * arrowLog (or arrowHeightInverse, arrowLogarithm)
   * Takes a hyper-logarithm with a certain number of arrows, with an arbitrary degree of an OmegaNum.
