@@ -44,7 +44,7 @@ local EMaxInteger = "e" .. MaxInteger
 local EEMaxInteger = "ee" .. MaxInteger
 local TetratedMaxInteger = "10^^" .. MaxInteger
 local PentatedMaxInteger = "10^^^" .. MaxInteger
-local MaxValue = 1.7976931348623157e308 -- Lua's maximum value for doubles, only there since Roblox doesn't have it in its math library
+local MaxValue = 1.7976931348623157e308 --Lua's maximum value for doubles, only there since Roblox doesn't have it in its math library
 local EnablePlainE = false --Determines whether …eenumenum should be …eeenum after a certain point
 local PlainEMax = 3 --Determines the point when …eenumenum turns into  …eeenum. This should be smaller than ChainEMax
 local ChainEMax = 10 --Determines the point when …eenumenum and  …eeenum into …(10^)^num num. Please do not make this too big.
@@ -214,12 +214,11 @@ function OmegaNum.fromString(input)
 				value[2] = data
 				--Flip sign of first element if negative
 				value[2][1] = math.abs(data[1])
-				return --[[OmegaNum.fix]](value)
+				return OmegaNum.fix(value)
 			else
 				error(OmegaNumError .. "Could not parse JSON")
 			end
 		else
-			--TODO: Support for stuff like "10^^100.5"
 			local value = {}
 			value[1] = 1
 			value[2] = {0}
@@ -337,7 +336,7 @@ function OmegaNum.fromString(input)
 						local parts = string.split(string.lower(suffix), "e")
 						local b = {value[2][1] or 0, 0}
 						local c = 1
-						-- Process and multiply coefficients
+						--Process and multiply coefficients
 						for idx = #parts, 1, -1 do
 							local currentPart = parts[idx]
 							if b[1] < MaxE and b[2] == 0 then
@@ -371,7 +370,7 @@ function OmegaNum.fromString(input)
 									b[1] = b[1] + math.log10(1 + 10 ^ (math.log10(d) - b[1]))
 								end
 							end
-							-- Carrying
+							--Carrying
 							if b[1] < MaxE and b[2] > 0 then
 								b[1] = 10 ^ b[1]
 								b[2] = b[2] - 1
@@ -641,8 +640,40 @@ end
 	Helper function for dispStringDecimalPlaces.
 ]]
 function decimalPlaces(value, places)
-	--TODO: Find a way to keep up to n significant figures and trim any excessive digits.
-	return string.format("%." .. (places - 1) .. "f", value)
+	local formatted = string.format("%." .. (places) .. "g", value)
+	--Check if number is in scientific notation
+	local eStart, eEnd = string.find(formatted, "e")
+	if eStart then
+		--Split into base and exponent
+		local base = string.sub(formatted, 1, eStart - 1)
+		local exponent = string.sub(formatted, eStart)
+		local cleanBase = string.gsub(base, "%.", "")
+		cleanBase = string.gsub(cleanBase, "^0+", "")
+		local missingDigits = places - string.len(cleanBase)
+		if missingDigits > 0 then
+			if not string.find(base, "%.") then
+				base = base .. "."
+			end
+			base = base .. string.rep("0", missingDigits)
+		end
+		return base .. exponent
+	else
+		--Formatting for regular numbers
+		if not string.find(formatted, "%.") then
+			local missingDigits = places - string.len(formatted)
+			if missingDigits > 0 then
+				formatted = formatted .. "." .. string.rep("0", missingDigits)
+			end
+		else
+			local clean = string.gsub(formatted,"%.", "")
+			clean = string.gsub(clean, "^0+", "")
+			local missingDigits = places - string.len(clean)
+			if missingDigits > 0 then
+				formatted = formatted .. string.rep("0", missingDigits)
+			end
+		end
+		return formatted
+	end
 end
 
 --[[
@@ -654,8 +685,8 @@ function OmegaNum.dispStringDecimalPlaces(value, places, applyToOpNums)
 	if places == nil then
 		places = 9
 	end
-	--Clamp number of decimal places
-	places = math.floor(math.clamp(places, 1, 15))
+	--Clamp number of decimal places (safeguard against invalid format (width is limited to 99))
+	places = math.floor(math.clamp(places, 1, 99))
 	if applyToOpNums == nil then
 		applyToOpNums = false
 	end
@@ -747,14 +778,14 @@ function t1format(x, mult, y)
 	end
 	--Define suffix parts
 	local t1ones = {"", "U", "D", "T", "Qd", "Qn", "Sx", "Sp", "Oc", "No"}
-	if mult and y > 0 and x < 10 then 
+	if mult and y > 0 and x < 10 then
 		t1ones[2] = "" --Shortcut to save space
 	end
 	local t1tens = {"", "De", "Vt", "Tg", "qg", "Qg", "sg", "Sg", "Og", "Ng"}
 	local t1hunds = {"", "Ce", "Du", "Tr", "Qa", "Qi", "Se", "Si", "Ot", "Nt"}
 	--Build suffix
-	local t1f = t1ones[x+1] 
-	if x >= 10 then 
+	local t1f = t1ones[x+1]
+	if x >= 10 then
 		t1f = (t1ones[(x%10)+1] or "") .. (t1tens[(math.floor(x/10)%10)+1] or "") .. (t1hunds[math.floor(x/100)+1] or "")
 	end
 	return t1f
@@ -874,8 +905,8 @@ function t4format(x, mult)
 	--Build suffix
 	local t4m = {"", "K", "M", "G", "", "L", "F", "J", "S", "B", "Gl", "G", "S", "V", "M"}
 	local t4f = (t4ills[x+1] or "")
-	if mult < 2 then 
-		t4f = (t4m[x+1] or "") .. t4f 
+	if mult < 2 then
+		t4f = (t4m[x+1] or "") .. t4f
 	end
 	return t4f
 end
@@ -1958,16 +1989,16 @@ function gamma(value)
 		local lm = 12 * np
 		local adj = 1 / lm
 		local l2 = l + adj
-		if l2 == l then 
-			return OmegaNum.exp(l) 
+		if l2 == l then
+			return OmegaNum.exp(l)
 		end
 		l = l2
 		np = np * n2
 		lm = 360 * np
 		adj = 1 / lm
 		l2 = l - adj
-		if l2 == l then 
-			return OmegaNum.exp(l) 
+		if l2 == l then
+			return OmegaNum.exp(l)
 		end
 		l = l2
 		np = np * n2
@@ -1995,11 +2026,11 @@ function OmegaNum.factorial(value)
 	value = OmegaNum.fix(value)
 	--Clone value into new value
 	local facty = copy(value)
-	if OmegaNum.lessThan(facty, 0) or not OmegaNum.isInteger(facty) then 
+	if OmegaNum.lessThan(facty, 0) or not OmegaNum.isInteger(facty) then
 		return gamma(OmegaNum.add(facty, 1))
 	end
-	if OmegaNum.lessThan(facty, 170) then 
-		return OmegaNum.toOmegaNum(factorials[OmegaNum.toNumber(facty)+1]) 
+	if OmegaNum.lessThan(facty, 170) then
+		return OmegaNum.toOmegaNum(factorials[OmegaNum.toNumber(facty)+1])
 	end
 	local errorFixer = 1
 	local e = OmegaNum.toNumber(facty)
@@ -2401,7 +2432,7 @@ function OmegaNum.sroot(radicand, index)
 			local nn = OmegaNum.sub(OmegaNum.slog(sroty, 10), index)
 			if OmegaNum.lessThanEqual(nn, 0) then
 				return {1, {1.444667861009766}}
-			end 
+			end
 			return OmegaNum.tetr(10, nn)
 		end
 		return {1, {math.nan}}
@@ -2511,7 +2542,7 @@ function OmegaNum.sroot(radicand, index)
 					if (stage == 1 and OmegaNum.greaterThan(nptd, ubtd) and OmegaNum.greaterThan(pptd, ubtd)) or (stage == 3 and OmegaNum.lessThan(nptd, ubtd) and OmegaNum.lessThan(pptd, ubtd)) then
 						lastValid = upper
 					end
-					if OmegaNum.lessThan(nptd, ubtd) then 
+					if OmegaNum.lessThan(nptd, ubtd) then
 						range = -1
 					elseif evenindex then
 						range = 1
@@ -2984,14 +3015,14 @@ function OmegaNum.arrowRoot(radicand, arrows, index)
 			if maxa[2] == 0 then
 				local i = 2
 				if #maxa > 2 then
-					while maxa[i] == 0 do 
-						maxa[i] = MaxInteger 
+					while maxa[i] == 0 do
+						maxa[i] = MaxInteger
 						i = i + 1
 					end
 					maxa[i] = maxa[i] - 1
 				end
-				if maxa[i] == 0 and i == #maxa then 
-					table.remove(maxa) 
+				if maxa[i] == 0 and i == #maxa then
+					table.remove(maxa)
 				end
 			end
 		end
@@ -3009,7 +3040,7 @@ function OmegaNum.arrowRoot(radicand, arrows, index)
 			end
 			if i < 1 or mina[i] > maxa[i] then break end
 			local mide
-			if i > 1 then 
+			if i > 1 then
 				mide = math.floor((mina[i] + maxa[i]) / 2)
 				if mide == mina[i] or mide == maxa[i] then break end
 			else
@@ -3020,9 +3051,9 @@ function OmegaNum.arrowRoot(radicand, arrows, index)
 			mida[i] = mide
 		end
 		local mid = OmegaNum.fix(mida)
-		if OmegaNum.lessThanEqual(OmegaNum.arrow(mid, arrows, index), aroty) then 
+		if OmegaNum.lessThanEqual(OmegaNum.arrow(mid, arrows, index), aroty) then
 			mina = mid[2]
-		else 
+		else
 			maxa = mida
 		end
 	end
