@@ -2891,7 +2891,7 @@ function OmegaNum.arrow(base, arrows, height, payload)
 		if fo > 0 then
 			ro = OmegaNum.arrow(hypey, arrowm1, ro)
 			if OmegaNum.equal(lo, ro) then
-				fo = 0
+				fo = fo - 1 --fo = 0
 				break
 			end
 			lo = ro
@@ -2899,7 +2899,7 @@ function OmegaNum.arrow(base, arrows, height, payload)
 		else
 			ro = OmegaNum.arrowLog(ro, arrowm1, hypey)
 			if OmegaNum.equal(lo, ro) then
-				fo = 0
+				fo = fo - 1 --fo = 0
 				break
 			end
 			lo = ro
